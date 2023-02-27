@@ -3,14 +3,15 @@ import {
     NULL_FIELD,
     LATEST_SCHEMA_VERSION,
     FIRST_SCHEMA_VERSION,
-    SCHEMA_VERSIONS,
     BYTES_NOT_INCLUDED
 } from "./consts"
 
 export {
     NULL_FIELD,
     LATEST_SCHEMA_VERSION,
-    MANIFEST_FILE_SUFFIX
+    MANIFEST_FILE_SUFFIX,
+    FIRST_SCHEMA_VERSION,
+    BYTES_NOT_INCLUDED
 } from "./consts"
 
 type ExpandedInbuiltTypes = (
@@ -26,7 +27,7 @@ type ExpandedInbuiltTypes = (
     | "array"
 )
 
-function type(val: unknown): ExpandedInbuiltTypes {
+function betterTypeof(val: unknown): ExpandedInbuiltTypes {
     const t = typeof val
     if (t !== "object") {
         return t
@@ -275,7 +276,7 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
     }
     const {pkg, errors} = out
     const c = cargo as ManifestOptions
-    const baseType = type(c)
+    const baseType = betterTypeof(c)
     if (baseType !== "object") {
         errors.push(`expected cargo to be type "object" got "${baseType}"`)
         return out
@@ -283,9 +284,13 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
 
     if (
         typeof c.schema !== "number"
-        || !SCHEMA_VERSIONS.includes(c.schema)
+        || c.schema < FIRST_SCHEMA_VERSION
+        || c.schema > LATEST_SCHEMA_VERSION
     ) {
-        errors.push(`crate version is invalid, got "${c.schema}", valid=${SCHEMA_VERSIONS.join()}`)
+        const validVersions = new Array<number>(2)
+            .fill(0)
+            .map((_, index) => index + 1)
+        errors.push(`crate version is invalid, got "${c.schema}", valid=${validVersions.join(", ")}`)
     }
     pkg.schema = c.schema || LATEST_SCHEMA_VERSION
 
@@ -304,10 +309,10 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
 
     const filesIsArray = Array.isArray(c.files)
     if (!filesIsArray) {
-        errors.push(`files should be an array, got "${type(c.files)}"`)
+        errors.push(`files should be an array, got "${betterTypeof(c.files)}"`)
     }
     
-    const fileRecord: Record<string, boolean> = {}
+    const fileRecord: Map<string, boolean> = new Map()
     const files = !filesIsArray ? [] : c.files || []
     for (let i = 0; i < files.length; i++) {
         const preFile = files[i]
@@ -315,8 +320,8 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
             files[i] = {name: preFile, bytes: 0, invalidation: "default"}
         }
         const file = files[i] as Partial<{name: string, bytes: 0, invalidation: string}>
-        if (type(file) !== "object") {
-            errors.push(`file ${i} is not an object. Expected an object with a "name" field, got ${type(file)}`)
+        if (betterTypeof(file) !== "object") {
+            errors.push(`file ${i} is not an object. Expected an object with a "name" field, got ${betterTypeof(file)}`)
             break
         }
         if (
@@ -327,16 +332,11 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
             break
         }
         const stdName = stripRelativePath(file.name)
-        if (
-            // ignore cross-origin
-            stdName.startsWith("https://")
-            || stdName.startsWith("http://")
-            // ignore duplicate files
-            || fileRecord[stdName]
-        ) {
+        // ignore duplicate files
+        if (fileRecord.has(stdName)) {
             break
         }
-        fileRecord[stdName] = true
+        fileRecord.set(stdName, true)
         pkg.files.push({
             name: stdName,
             bytes: Math.max(
@@ -351,15 +351,15 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
 
     const permissions = c.permissions || []
     if (!Array.isArray(permissions)) {
-        errors.push(`permissions should be an array, got "${type(c.permissions)}"`)
+        errors.push(`permissions should be an array, got "${betterTypeof(c.permissions)}"`)
     }
 
     const permissionsMap = new Map<string, number>()
     for (let i = 0; i < permissions.length; i++) {
         const permission = permissions[i]
-        const permissionType = type(permission)
+        const permissionType = betterTypeof(permission)
         if (permissionType !== "string" && permissionType !== "object") {
-            errors.push(`permission should be a string or object with "key" & "value" properties. Permission ${i} type=${type(permission)}`)
+            errors.push(`permission should be a string or object with "key" & "value" properties. Permission ${i} type=${betterTypeof(permission)}`)
         }
 
         if (typeof permission === "string") {
@@ -374,12 +374,12 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
             continue
         }
         if (typeof permission.key !== "string") {
-            errors.push(`permission ${i} property "key" is not a string. got = ${type(permission.key)}`)
+            errors.push(`permission ${i} property "key" is not a string. got = ${betterTypeof(permission.key)}`)
             continue
         }
         const value = permission.value || []
         if (!Array.isArray(value)) {
-            errors.push(`permission ${i} property "value" is not an array. got = ${type(permission.key)}`)
+            errors.push(`permission ${i} property "value" is not an array. got = ${betterTypeof(permission.key)}`)
             continue
         }
         if (permissionsMap.has(permission.key)) {
@@ -393,7 +393,7 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
     }
 
     pkg.entry = orNull(c.entry)
-    if (pkg.entry !== NULL_FIELD && !fileRecord[pkg.entry]) {
+    if (pkg.entry !== NULL_FIELD && !fileRecord.has(pkg.entry)) {
         errors.push(`entry must be one of package listed files, got ${pkg.entry}`)
     }
 
@@ -415,8 +415,8 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
     pkg.homepageUrl = orNull(c.homepageUrl)
 
     c.metadata = c.metadata || {}
-    if (type(c.metadata) !== "object") {
-        errors.push(`metadata should be a record of strings, got "${type(c.metadata)}"`)
+    if (betterTypeof(c.metadata) !== "object") {
+        errors.push(`metadata should be a record of strings, got "${betterTypeof(c.metadata)}"`)
         c.metadata = {}
     }
 
@@ -427,7 +427,7 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
         const key = metaKeys[i]
         const value = candidate[key]
         if (typeof value !== "string") {
-            errors.push(`meta should be a record of strings, got type "${type(value)}" for property "${key}" of meta`)
+            errors.push(`meta should be a record of strings, got type "${betterTypeof(value)}" for property "${key}" of meta`)
             continue
         }
         meta[key] = value
