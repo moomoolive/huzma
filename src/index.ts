@@ -75,7 +75,7 @@ export type RepoType = "git" | "other" | NullField
 export type ValidDefaultStrategies = ("url-diff" | "purge")
 export type InvalidationStrategy = ValidDefaultStrategies | "default"
 
-type PermissionsListRaw = ReadonlyArray<
+export type PermissionsListRaw = ReadonlyArray<
     string | {key: string, value: Array<string> | ReadonlyArray<string>}
 >
 
@@ -103,7 +103,7 @@ type FillEmptyPermissionsOptional<P extends PermissionsListRaw> = {
             : never
 }
 
-type PermissionsListOptions<
+export type PermissionsListOptions<
     P extends PermissionsListRaw = {key: string, value: string[]}[]
 > = Array<FillEmptyPermissionsOptional<P>[number]>
 
@@ -111,11 +111,11 @@ export type PermissionsList<
     P extends PermissionsListRaw = {key: string, value: string[]}[]
 > = Array<FillEmptyPermissions<P>[number]>
 
-type HuzmaManifestPartial= Partial<
+export type HuzmaManifestPartial= Partial<
     Omit<HuzmaManifest, "files" | "authors" | "repo" | "permissions">
 >
 
-type ManifestOptions<
+export type ManifestOptions<
     Permissions extends PermissionsListRaw = ReadonlyArray<{key: string, value: string[]}>
 > = (
     HuzmaManifestPartial & Partial<{
@@ -474,12 +474,12 @@ export function manifestIsUpdatable(
     return out
 }
 
-type FileRef = {
+export type FileRef = {
     name: string, 
     bytes: number
 }
 
-class HuzmaUpdateDetails {
+export class HuzmaUpdateDetails {
     add: FileRef[]
     delete: FileRef[]
 

@@ -1,7 +1,7 @@
 import { SemVer } from "small-semver";
-import { NULL_FIELD, ALL_SCHEMA_VERSIONS } from "./consts";
-export { NULL_FIELD, ALL_SCHEMA_VERSIONS, LATEST_SCHEMA_VERSION, MANIFEST_FILE_SUFFIX } from "./consts";
-export type SchemaVersion = keyof typeof ALL_SCHEMA_VERSIONS;
+import { NULL_FIELD, LATEST_SCHEMA_VERSION, FIRST_SCHEMA_VERSION } from "./consts";
+export { NULL_FIELD, LATEST_SCHEMA_VERSION, MANIFEST_FILE_SUFFIX, FIRST_SCHEMA_VERSION, BYTES_NOT_INCLUDED } from "./consts";
+export type SchemaVersion = (typeof FIRST_SCHEMA_VERSION | typeof LATEST_SCHEMA_VERSION);
 export type NullField = typeof NULL_FIELD;
 export type RepoType = "git" | "other" | NullField;
 export type ValidDefaultStrategies = ("url-diff" | "purge");

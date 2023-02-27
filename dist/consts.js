@@ -1,4 +1,5 @@
 export const MANIFEST_FILE_SUFFIX = ".huzma.json";
 export const NULL_FIELD = "";
-export const ALL_SCHEMA_VERSIONS = { "0.1.0": 1 };
-export const LATEST_SCHEMA_VERSION = "0.1.0";
+export const FIRST_SCHEMA_VERSION = 1;
+export const LATEST_SCHEMA_VERSION = 2;
+export const BYTES_NOT_INCLUDED = -1;

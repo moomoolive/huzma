@@ -1,7 +1,7 @@
 import { SemVer } from "small-semver";
-import { NULL_FIELD, ALL_SCHEMA_VERSIONS, LATEST_SCHEMA_VERSION } from "./consts";
-export { NULL_FIELD, ALL_SCHEMA_VERSIONS, LATEST_SCHEMA_VERSION, MANIFEST_FILE_SUFFIX } from "./consts";
-function type(val) {
+import { NULL_FIELD, LATEST_SCHEMA_VERSION, FIRST_SCHEMA_VERSION, BYTES_NOT_INCLUDED } from "./consts";
+export { NULL_FIELD, LATEST_SCHEMA_VERSION, MANIFEST_FILE_SUFFIX, FIRST_SCHEMA_VERSION, BYTES_NOT_INCLUDED } from "./consts";
+function betterTypeof(val) {
     const t = typeof val;
     if (t !== "object") {
         return t;
@@ -58,7 +58,7 @@ export class HuzmaManifest {
     homepageUrl;
     permissions;
     metadata;
-    constructor({ schema = "0.1.0", name = "unspecified-name", version = NULL_MANIFEST_VERSION, files = [], 
+    constructor({ schema = LATEST_SCHEMA_VERSION, name = "unspecified-name", version = NULL_MANIFEST_VERSION, files = [], 
     // optionalfields
     entry = NULL_FIELD, invalidation = "default", description = NULL_FIELD, authors = [], crateLogoUrl = NULL_FIELD, keywords = [], license = NULL_FIELD, repo = { type: NULL_FIELD, url: NULL_FIELD }, homepageUrl = NULL_FIELD, permissions = [], metadata = {} } = {}) {
         this.homepageUrl = homepageUrl;
@@ -132,13 +132,18 @@ export function validateManifest(cargo) {
     };
     const { pkg, errors } = out;
     const c = cargo;
-    const baseType = type(c);
+    const baseType = betterTypeof(c);
     if (baseType !== "object") {
         errors.push(`expected cargo to be type "object" got "${baseType}"`);
         return out;
     }
-    if (!ALL_SCHEMA_VERSIONS[c.schema || ""]) {
-        errors.push(`crate version is invalid, got "${c.schema}", valid=${Object.keys(ALL_SCHEMA_VERSIONS).join()}`);
+    if (typeof c.schema !== "number"
+        || c.schema < FIRST_SCHEMA_VERSION
+        || c.schema > LATEST_SCHEMA_VERSION) {
+        const validVersions = new Array(2)
+            .fill(0)
+            .map((_, index) => index + 1);
+        errors.push(`crate version is invalid, got "${c.schema}", valid=${validVersions.join(", ")}`);
     }
     pkg.schema = c.schema || LATEST_SCHEMA_VERSION;
     if (!typevalid(c, "name", "string", errors)) { }
@@ -155,9 +160,9 @@ export function validateManifest(cargo) {
     pkg.version = orNull(c.version);
     const filesIsArray = Array.isArray(c.files);
     if (!filesIsArray) {
-        errors.push(`files should be an array, got "${type(c.files)}"`);
+        errors.push(`files should be an array, got "${betterTypeof(c.files)}"`);
     }
-    const fileRecord = {};
+    const fileRecord = new Map();
     const files = !filesIsArray ? [] : c.files || [];
     for (let i = 0; i < files.length; i++) {
         const preFile = files[i];
@@ -165,8 +170,8 @@ export function validateManifest(cargo) {
             files[i] = { name: preFile, bytes: 0, invalidation: "default" };
         }
         const file = files[i];
-        if (type(file) !== "object") {
-            errors.push(`file ${i} is not an object. Expected an object with a "name" field, got ${type(file)}`);
+        if (betterTypeof(file) !== "object") {
+            errors.push(`file ${i} is not an object. Expected an object with a "name" field, got ${betterTypeof(file)}`);
             break;
         }
         if (typeof file?.name !== "string"
@@ -175,31 +180,27 @@ export function validateManifest(cargo) {
             break;
         }
         const stdName = stripRelativePath(file.name);
-        if (
-        // ignore cross-origin
-        stdName.startsWith("https://")
-            || stdName.startsWith("http://")
-            // ignore duplicate files
-            || fileRecord[stdName]) {
+        // ignore duplicate files
+        if (fileRecord.has(stdName)) {
             break;
         }
-        fileRecord[stdName] = true;
+        fileRecord.set(stdName, true);
         pkg.files.push({
             name: stdName,
-            bytes: Math.max(typeof file.bytes === "number" ? file.bytes : 0, 0),
+            bytes: Math.max(typeof file.bytes === "number" ? file.bytes : BYTES_NOT_INCLUDED, BYTES_NOT_INCLUDED),
             invalidation: toInvalidation(file?.invalidation || "default")
         });
     }
     const permissions = c.permissions || [];
     if (!Array.isArray(permissions)) {
-        errors.push(`permissions should be an array, got "${type(c.permissions)}"`);
+        errors.push(`permissions should be an array, got "${betterTypeof(c.permissions)}"`);
     }
     const permissionsMap = new Map();
     for (let i = 0; i < permissions.length; i++) {
         const permission = permissions[i];
-        const permissionType = type(permission);
+        const permissionType = betterTypeof(permission);
         if (permissionType !== "string" && permissionType !== "object") {
-            errors.push(`permission should be a string or object with "key" & "value" properties. Permission ${i} type=${type(permission)}`);
+            errors.push(`permission should be a string or object with "key" & "value" properties. Permission ${i} type=${betterTypeof(permission)}`);
         }
         if (typeof permission === "string") {
             if (permissionsMap.has(permission)) {
@@ -213,12 +214,12 @@ export function validateManifest(cargo) {
             continue;
         }
         if (typeof permission.key !== "string") {
-            errors.push(`permission ${i} property "key" is not a string. got = ${type(permission.key)}`);
+            errors.push(`permission ${i} property "key" is not a string. got = ${betterTypeof(permission.key)}`);
             continue;
         }
         const value = permission.value || [];
         if (!Array.isArray(value)) {
-            errors.push(`permission ${i} property "value" is not an array. got = ${type(permission.key)}`);
+            errors.push(`permission ${i} property "value" is not an array. got = ${betterTypeof(permission.key)}`);
             continue;
         }
         if (permissionsMap.has(permission.key)) {
@@ -231,7 +232,7 @@ export function validateManifest(cargo) {
         });
     }
     pkg.entry = orNull(c.entry);
-    if (pkg.entry !== NULL_FIELD && !fileRecord[pkg.entry]) {
+    if (pkg.entry !== NULL_FIELD && !fileRecord.has(pkg.entry)) {
         errors.push(`entry must be one of package listed files, got ${pkg.entry}`);
     }
     pkg.invalidation = typeof c.invalidation === "string"
@@ -251,8 +252,8 @@ export function validateManifest(cargo) {
     pkg.repo.url = orNull(c.repo?.url);
     pkg.homepageUrl = orNull(c.homepageUrl);
     c.metadata = c.metadata || {};
-    if (type(c.metadata) !== "object") {
-        errors.push(`metadata should be a record of strings, got "${type(c.metadata)}"`);
+    if (betterTypeof(c.metadata) !== "object") {
+        errors.push(`metadata should be a record of strings, got "${betterTypeof(c.metadata)}"`);
         c.metadata = {};
     }
     const meta = {};
@@ -262,7 +263,7 @@ export function validateManifest(cargo) {
         const key = metaKeys[i];
         const value = candidate[key];
         if (typeof value !== "string") {
-            errors.push(`meta should be a record of strings, got type "${type(value)}" for property "${key}" of meta`);
+            errors.push(`meta should be a record of strings, got type "${betterTypeof(value)}" for property "${key}" of meta`);
             continue;
         }
         meta[key] = value;
