@@ -1,13 +1,14 @@
 import {SemVer} from "small-semver"
 import {
     NULL_FIELD,
-    ALL_SCHEMA_VERSIONS,
-    LATEST_SCHEMA_VERSION
+    LATEST_SCHEMA_VERSION,
+    FIRST_SCHEMA_VERSION,
+    SCHEMA_VERSIONS,
+    BYTES_NOT_INCLUDED
 } from "./consts"
 
 export {
     NULL_FIELD,
-    ALL_SCHEMA_VERSIONS,
     LATEST_SCHEMA_VERSION,
     MANIFEST_FILE_SUFFIX
 } from "./consts"
@@ -64,7 +65,10 @@ function stripRelativePath(url: string): string {
     return split.slice(urlStart).join("/")
 }
 
-export type SchemaVersion = keyof typeof ALL_SCHEMA_VERSIONS
+export type SchemaVersion = (
+    typeof FIRST_SCHEMA_VERSION
+    | typeof LATEST_SCHEMA_VERSION
+)
 export type NullField = typeof NULL_FIELD
 export type RepoType = "git" | "other" | NullField
 export type ValidDefaultStrategies = ("url-diff" | "purge")
@@ -159,7 +163,7 @@ export class HuzmaManifest<
     metadata: Record<string, string>
 
     constructor({
-        schema = "0.1.0",
+        schema = LATEST_SCHEMA_VERSION,
         name = "unspecified-name",
         version = NULL_MANIFEST_VERSION,
         files = [],
@@ -276,8 +280,12 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
         errors.push(`expected cargo to be type "object" got "${baseType}"`)
         return out
     }
-    if (!ALL_SCHEMA_VERSIONS[c.schema || "" as SchemaVersion]) {
-        errors.push(`crate version is invalid, got "${c.schema}", valid=${Object.keys(ALL_SCHEMA_VERSIONS).join()}`)
+
+    if (
+        typeof c.schema !== "number"
+        || !SCHEMA_VERSIONS.includes(c.schema)
+    ) {
+        errors.push(`crate version is invalid, got "${c.schema}", valid=${SCHEMA_VERSIONS.join()}`)
     }
     pkg.schema = c.schema || LATEST_SCHEMA_VERSION
 
@@ -332,8 +340,8 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
         pkg.files.push({
             name: stdName,
             bytes: Math.max(
-                typeof file.bytes === "number" ? file.bytes : 0, 
-                0
+                typeof file.bytes === "number" ? file.bytes : BYTES_NOT_INCLUDED, 
+                BYTES_NOT_INCLUDED
             ),
             invalidation: toInvalidation(
                 file?.invalidation || "default"

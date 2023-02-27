@@ -1,11 +1,11 @@
 import {describe, it, expect} from "vitest"
 import {
-    manifestIsUpdatable, 
+    manifestIsUpdatable,
     HuzmaManifest, 
     NULL_MANIFEST_VERSION,
     InvalidationStrategy
 } from "./index"
-import {LATEST_SCHEMA_VERSION, NULL_FIELD,} from "./consts"
+import {LATEST_SCHEMA_VERSION, NULL_FIELD, BYTES_NOT_INCLUDED} from "./consts"
 import {diffManifestFiles, validateManifest} from "./index"
 import {SemVer} from "small-semver"
 
@@ -278,37 +278,37 @@ describe("manifest validation function", () => {
         expect(validateManifest(m).errors.length).toBeGreaterThan(0)
     })
 
-    it("should return no error is file.bytes is not a number, and place a 0 in it's place instead", () => {
+    it(`should return no error is file.bytes is not a number, and place a ${BYTES_NOT_INCLUDED} in it's place instead`, () => {
         const m = structuredClone(manifest)
         const fileCopy = {...m.files[0]}
         m.files[0] = {...fileCopy}
         delete ((m.files[0] as any).bytes)
         expect(validateManifest(m).errors.length).toBe(0)
-        expect(validateManifest(m).pkg.files[0].bytes).toBe(0)
+        expect(validateManifest(m).pkg.files[0].bytes).toBe(BYTES_NOT_INCLUDED)
         m.files[0] = {...fileCopy}
         {((m.files[0] as any).bytes) = null}
         expect(validateManifest(m).errors.length).toBe(0)
-        expect(validateManifest(m).pkg.files[0].bytes).toBe(0)
+        expect(validateManifest(m).pkg.files[0].bytes).toBe(BYTES_NOT_INCLUDED)
         m.files[0] = {...fileCopy}
         {((m.files[0] as any).bytes) = "hi"}
         expect(validateManifest(m).errors.length).toBe(0)
-        expect(validateManifest(m).pkg.files[0].bytes).toBe(0)
+        expect(validateManifest(m).pkg.files[0].bytes).toBe(BYTES_NOT_INCLUDED)
         m.files[0] = {...fileCopy}
         {((m.files[0] as any).bytes) = true}
         expect(validateManifest(m).errors.length).toBe(0)
-        expect(validateManifest(m).pkg.files[0].bytes).toBe(0)
+        expect(validateManifest(m).pkg.files[0].bytes).toBe(BYTES_NOT_INCLUDED)
         m.files[0] = {...fileCopy}
         {((m.files[0] as any).bytes) = {}}
         expect(validateManifest(m).errors.length).toBe(0)
-        expect(validateManifest(m).pkg.files[0].bytes).toBe(0)
+        expect(validateManifest(m).pkg.files[0].bytes).toBe(BYTES_NOT_INCLUDED)
         m.files[0] = {...fileCopy}
         {((m.files[0] as any).bytes) = []}
         expect(validateManifest(m).errors.length).toBe(0)
-        expect(validateManifest(m).pkg.files[0].bytes).toBe(0)
+        expect(validateManifest(m).pkg.files[0].bytes).toBe(BYTES_NOT_INCLUDED)
         m.files[0] = {...fileCopy}
         {((m.files[0] as any).bytes) = Symbol()}
         expect(validateManifest(m).errors.length).toBe(0)
-        expect(validateManifest(m).pkg.files[0].bytes).toBe(0)
+        expect(validateManifest(m).pkg.files[0].bytes).toBe(BYTES_NOT_INCLUDED)
     })
 
     it(`should return error if cargo.entry is provided but is not the name of one of cargo files, unless entry is '${NULL_FIELD}'`, () => {
@@ -444,9 +444,9 @@ describe("manifest validation function", () => {
     it("duplicate permission keys should be filtered out", () => {
         const dup = (keys: string[], count: number) => {
             const m = structuredClone(manifest)
-            const arr = []
+            const arr: {key: string, value: string[]}[] = []
             for (const key of keys) {
-                const val = {key, value: []}
+                const val = {key, value: [] as string[]}
                 for (let i = 0; i < count; i++) {
                     arr.push(val)
                 }
