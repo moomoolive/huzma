@@ -136,13 +136,13 @@ export class HuzmaManifest<
     schema: SchemaVersion
     name: string
     version: string
+    
+    // optional fields
     files: Array<{
         name: string, 
         bytes: number,
         invalidation: InvalidationStrategy
     }>
-
-    // optional fields
     entry: string
     invalidation: InvalidationStrategy
     description: string
@@ -159,9 +159,9 @@ export class HuzmaManifest<
         schema = LATEST_SCHEMA_VERSION,
         name = "unspecified-name",
         version = NULL_MANIFEST_VERSION,
-        files = [],
 
-        // optionalfields
+        // optional fields
+        files = [],
         entry = NULL_FIELD,
         invalidation = "default",
         description = NULL_FIELD,
@@ -299,13 +299,14 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
     }
     pkg.version = orNull(c.version)
 
-    const filesIsArray = Array.isArray(c.files)
+    const targetFiles = c.files === undefined ? [] : c.files
+    const filesIsArray = Array.isArray(targetFiles)
     if (!filesIsArray) {
-        errors.push(`files should be an array, got "${betterTypeof(c.files)}"`)
+        errors.push(`files should be an array, got "${betterTypeof(targetFiles)}"`)
     }
     
     const fileRecord: Map<string, boolean> = new Map()
-    const files = !filesIsArray ? [] : c.files || []
+    const files = !filesIsArray ? [] : targetFiles
     for (let i = 0; i < files.length; i++) {
         const preFile = files[i]
         if (typeof preFile === "string") {

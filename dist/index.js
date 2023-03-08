@@ -48,8 +48,8 @@ export class HuzmaManifest {
     schema;
     name;
     version;
-    files;
     // optional fields
+    files;
     entry;
     invalidation;
     description;
@@ -61,9 +61,9 @@ export class HuzmaManifest {
     homepageUrl;
     permissions;
     metadata;
-    constructor({ schema = LATEST_SCHEMA_VERSION, name = "unspecified-name", version = NULL_MANIFEST_VERSION, files = [], 
+    constructor({ schema = LATEST_SCHEMA_VERSION, name = "unspecified-name", version = NULL_MANIFEST_VERSION, 
     // optionalfields
-    entry = NULL_FIELD, invalidation = "default", description = NULL_FIELD, authors = [], crateLogoUrl = NULL_FIELD, keywords = [], license = NULL_FIELD, repo = { type: NULL_FIELD, url: NULL_FIELD }, homepageUrl = NULL_FIELD, permissions = [], metadata = {} } = {}) {
+    files = [], entry = NULL_FIELD, invalidation = "default", description = NULL_FIELD, authors = [], crateLogoUrl = NULL_FIELD, keywords = [], license = NULL_FIELD, repo = { type: NULL_FIELD, url: NULL_FIELD }, homepageUrl = NULL_FIELD, permissions = [], metadata = {} } = {}) {
         this.homepageUrl = homepageUrl;
         this.repo = {
             type: repo?.type || "other",
@@ -161,12 +161,13 @@ export function validateManifest(cargo) {
         out.semanticVersion = semverTmp;
     }
     pkg.version = orNull(c.version);
-    const filesIsArray = Array.isArray(c.files);
+    const targetFiles = c.files === undefined ? [] : c.files;
+    const filesIsArray = Array.isArray(targetFiles);
     if (!filesIsArray) {
-        errors.push(`files should be an array, got "${betterTypeof(c.files)}"`);
+        errors.push(`files should be an array, got "${betterTypeof(targetFiles)}"`);
     }
     const fileRecord = new Map();
-    const files = !filesIsArray ? [] : c.files || [];
+    const files = !filesIsArray ? [] : targetFiles;
     for (let i = 0; i < files.length; i++) {
         const preFile = files[i];
         if (typeof preFile === "string") {

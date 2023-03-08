@@ -1,6 +1,6 @@
 {
   "name": "huzma",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "license": "MIT",
   "type": "module",
   "description": "A manifest format for browser-based package managers",
@@ -14,7 +14,7 @@
     "build": "npm run build-node && npm run build-web"
   },
   "dependencies": {
-    "small-semver": "^0.1.0"
+    "small-semver": "^0.1.1"
   },
   "devDependencies": {
     "esbuild": "^0.17.10",

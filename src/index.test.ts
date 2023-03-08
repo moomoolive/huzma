@@ -234,7 +234,13 @@ describe("manifest validation function", () => {
         expect(del("schema").errors.length).toBeGreaterThan(0)
         expect(del("name").errors.length).toBeGreaterThan(0)
         expect(del("version").errors.length).toBeGreaterThan(0)
-        expect(del("files").errors.length).toBeGreaterThan(0)
+    })
+
+    it("should not return error if no files provided along with no entry", () => {
+        const pkg = structuredClone(manifest)
+        delete (pkg as any).files
+        delete (pkg as any).entry
+        expect(validateManifest(pkg).errors).length(0)
     })
 
     it("should return error if cargo.schema is not a valid version", () => {
