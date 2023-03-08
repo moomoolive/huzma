@@ -1,4 +1,4 @@
-import type { InvalidationStrategy, PermissionsList, PermissionsListRaw } from "./index";
+import { PermissionsListOptions, InvalidationStrategy, PermissionsListRaw } from "./index";
 export type HuzmaCliConfig<Permissions extends PermissionsListRaw = PermissionsListRaw> = {
     buildDir?: string;
     huzmaName?: string;
@@ -24,7 +24,7 @@ export type HuzmaCliConfig<Permissions extends PermissionsListRaw = PermissionsL
         url: string;
     };
     homepageUrl?: string;
-    permissions?: PermissionsList<Permissions>;
+    permissions?: PermissionsListOptions<Permissions>;
     metadata?: Record<string, string>;
 };
 export declare function createHuzma({ configFileName, packageJsonPath, outFile, huzmaName, buildDir, inlineConfigFile }?: {

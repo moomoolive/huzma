@@ -5,15 +5,13 @@ import semver from "semver"
 import {
     LATEST_SCHEMA_VERSION,
     MANIFEST_FILE_SUFFIX,
-    validateManifest
+    PermissionsListOptions,
+    validateManifest,
+    InvalidationStrategy, 
+    PermissionsListRaw
 } from "./index"
 import filePathFilter from "@jsdevtools/file-path-filter"
 import fsSync from "fs"
-import type {
-    InvalidationStrategy, 
-    PermissionsList,
-    PermissionsListRaw
-} from "./index"
 
 export type HuzmaCliConfig<
     Permissions extends PermissionsListRaw = PermissionsListRaw
@@ -40,7 +38,7 @@ export type HuzmaCliConfig<
     license?: string
     repo?: {type: string, url: string}
     homepageUrl?: string
-    permissions?: PermissionsList<Permissions>
+    permissions?: PermissionsListOptions<Permissions>
     metadata?: Record<string, string>
 }
 
