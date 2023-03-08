@@ -6,6 +6,8 @@ export const FIRST_SCHEMA_VERSION = 1
 export const LATEST_SCHEMA_VERSION = 2
 export const BYTES_NOT_INCLUDED = -1
 
+export type {HuzmaCliConfig} from "./cli"
+
 type ExpandedInbuiltTypes = (
     "string" 
     | "number" 
