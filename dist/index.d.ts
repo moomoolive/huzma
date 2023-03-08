@@ -6,7 +6,7 @@ export type NullField = typeof NULL_FIELD;
 export type RepoType = "git" | "other" | NullField;
 export type ValidDefaultStrategies = ("url-diff" | "purge");
 export type InvalidationStrategy = ValidDefaultStrategies | "default";
-type PermissionsListRaw = ReadonlyArray<string | {
+export type PermissionsListRaw = ReadonlyArray<string | {
     key: string;
     value: Array<string> | ReadonlyArray<string>;
 }>;
@@ -34,7 +34,7 @@ type FillEmptyPermissionsOptional<P extends PermissionsListRaw> = {
         value: Value[];
     } : never;
 };
-type PermissionsListOptions<P extends PermissionsListRaw = {
+export type PermissionsListOptions<P extends PermissionsListRaw = {
     key: string;
     value: string[];
 }[]> = Array<FillEmptyPermissionsOptional<P>[number]>;
@@ -42,8 +42,8 @@ export type PermissionsList<P extends PermissionsListRaw = {
     key: string;
     value: string[];
 }[]> = Array<FillEmptyPermissions<P>[number]>;
-type HuzmaManifestPartial = Partial<Omit<HuzmaManifest, "files" | "authors" | "repo" | "permissions">>;
-type ManifestOptions<Permissions extends PermissionsListRaw = ReadonlyArray<{
+export type HuzmaManifestPartial = Partial<Omit<HuzmaManifest, "files" | "authors" | "repo" | "permissions">>;
+export type ManifestOptions<Permissions extends PermissionsListRaw = ReadonlyArray<{
     key: string;
     value: string[];
 }>> = (HuzmaManifestPartial & Partial<{
@@ -109,11 +109,11 @@ export type ManifestUpdateResponse = {
     updateAvailable: boolean;
 };
 export declare function manifestIsUpdatable(newManifest: unknown, oldManifest: unknown): ManifestUpdateResponse;
-type FileRef = {
+export type FileRef = {
     name: string;
     bytes: number;
 };
-declare class HuzmaUpdateDetails {
+export declare class HuzmaUpdateDetails {
     add: FileRef[];
     delete: FileRef[];
     constructor(addFiles: FileRef[], deleteFiles: FileRef[]);

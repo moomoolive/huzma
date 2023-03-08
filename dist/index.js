@@ -301,7 +301,7 @@ export function manifestIsUpdatable(newManifest, oldManifest) {
     out.updateAvailable = newSemver.isGreater(oldSemVer);
     return out;
 }
-class HuzmaUpdateDetails {
+export class HuzmaUpdateDetails {
     add;
     delete;
     constructor(addFiles, deleteFiles) {
