@@ -1,6 +1,9 @@
 import { SemVer } from "small-semver";
-import { NULL_FIELD, LATEST_SCHEMA_VERSION, FIRST_SCHEMA_VERSION } from "./consts";
-export { NULL_FIELD, LATEST_SCHEMA_VERSION, MANIFEST_FILE_SUFFIX, FIRST_SCHEMA_VERSION, BYTES_NOT_INCLUDED } from "./consts";
+export declare const MANIFEST_FILE_SUFFIX = ".huzma.json";
+export declare const NULL_FIELD = "";
+export declare const FIRST_SCHEMA_VERSION = 1;
+export declare const LATEST_SCHEMA_VERSION = 2;
+export declare const BYTES_NOT_INCLUDED = -1;
 export type SchemaVersion = (typeof FIRST_SCHEMA_VERSION | typeof LATEST_SCHEMA_VERSION);
 export type NullField = typeof NULL_FIELD;
 export type RepoType = "git" | "other" | NullField;
@@ -119,4 +122,5 @@ export declare class HuzmaUpdateDetails {
     constructor(addFiles: FileRef[], deleteFiles: FileRef[]);
 }
 export declare function diffManifestFiles(newCargo: HuzmaManifest, oldCargo: HuzmaManifest, defaultInvalidation: ValidDefaultStrategies): HuzmaUpdateDetails;
+export {};
 //# sourceMappingURL=index.d.ts.map

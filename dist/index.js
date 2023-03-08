@@ -1,6 +1,9 @@
 import { SemVer } from "small-semver";
-import { NULL_FIELD, LATEST_SCHEMA_VERSION, FIRST_SCHEMA_VERSION, BYTES_NOT_INCLUDED } from "./consts";
-export { NULL_FIELD, LATEST_SCHEMA_VERSION, MANIFEST_FILE_SUFFIX, FIRST_SCHEMA_VERSION, BYTES_NOT_INCLUDED } from "./consts";
+export const MANIFEST_FILE_SUFFIX = ".huzma.json";
+export const NULL_FIELD = "";
+export const FIRST_SCHEMA_VERSION = 1;
+export const LATEST_SCHEMA_VERSION = 2;
+export const BYTES_NOT_INCLUDED = -1;
 function betterTypeof(val) {
     const t = typeof val;
     if (t !== "object") {

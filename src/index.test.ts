@@ -3,9 +3,11 @@ import {
     manifestIsUpdatable,
     HuzmaManifest, 
     NULL_MANIFEST_VERSION,
-    InvalidationStrategy
+    InvalidationStrategy,
+    LATEST_SCHEMA_VERSION, 
+    NULL_FIELD, 
+    BYTES_NOT_INCLUDED
 } from "./index"
-import {LATEST_SCHEMA_VERSION, NULL_FIELD, BYTES_NOT_INCLUDED} from "./consts"
 import {diffManifestFiles, validateManifest} from "./index"
 import {SemVer} from "small-semver"
 
