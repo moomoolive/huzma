@@ -110,7 +110,7 @@ export async function createHuzma({
             license: z.string().optional(),
             repo: z.object({
                 type: z.string(),
-                ur: z.string()
+                url: z.string()
             }).optional(),        
             homepageUrl: z.string().optional(),
             permissions: z.array(z.union([
