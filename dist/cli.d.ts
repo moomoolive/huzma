@@ -35,4 +35,9 @@ export declare function createHuzma({ configFileName, packageJsonPath, outFile, 
     buildDir?: string | undefined;
     inlineConfigFile?: HuzmaCliConfig<PermissionsListRaw> | null | undefined;
 }): Promise<void>;
+export type TemplateOptions = "" | "zakhaarif";
+export declare function initHuzma({ path, template }?: {
+    path?: string | undefined;
+    template?: TemplateOptions | undefined;
+}): Promise<void>;
 //# sourceMappingURL=cli.d.ts.map

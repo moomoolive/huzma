@@ -1,6 +1,6 @@
 {
   "name": "huzma",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "license": "MIT",
   "type": "module",
   "description": "A manifest format for browser-based package managers",
@@ -14,15 +14,16 @@
     "build": "npm run build-node && npm run build-web"
   },
   "bin": {
-    "huzma-create": "./cli/create.mjs"
+    "huzma-create": "./cli/create.mjs",
+    "huzma-init": "./cli/init.mjs"
   },
   "dependencies": {
-    "small-semver": "^0.1.1",
-    "semver": "^7.3.8",
-    "zod": "^3.21.4",
-    "filehound": "^1.17.6",
+    "@jsdevtools/file-path-filter": "^3.0.2",
     "command-line-args": "^5.2.1",
-    "@jsdevtools/file-path-filter": "^3.0.2"
+    "filehound": "^1.17.6",
+    "semver": "^7.3.8",
+    "small-semver": "^0.1.1",
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@types/command-line-args": "^5.2.0",

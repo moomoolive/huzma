@@ -64,7 +64,7 @@ export async function createHuzma({
     huzmaName = "",
     buildDir = "",
     inlineConfigFile = null as null | HuzmaCliConfig
-} = {}) {
+} = {}): Promise<void> {
     if (configFileName.length < 1 && !inlineConfigFile) {
         console.error("no config file name was specificed and inline config was not provided")
         return
@@ -267,4 +267,38 @@ export async function createHuzma({
     await fs.writeFile(filename, JSON.stringify(pkg))
     console.info("generated huzma", pkg)
     console.info(`✅ huzma file generated successfully (${filename})`)
+}
+
+export type TemplateOptions = "" | "zakhaarif"
+const HUZMA_CLI_DOCS_LINK = "https://github.com/moomoolive/huzma"
+
+export async function initHuzma({
+    path = DEAULT_CONFIG_FILE,
+    template = "" as TemplateOptions
+} = {}): Promise<void> {
+    if (!path.endsWith("js") && !path.endsWith("mjs")) {
+        console.error(`huzma config file must be a js file (ending with "js" or "mjs"), got "${path}"`)
+        return
+    }
+
+    const typeDeclaration = (() => {
+        switch (template) {
+            default:
+                return `/** @type {import("huzma").HuzmaCliConfig} */`
+        }
+    })()
+    const defaultConfig: HuzmaCliConfig = {
+        buildDir: "dist",
+        huzmaName: "default.huzma.json"
+    }
+    const file = `
+// docs: ${HUZMA_CLI_DOCS_LINK}
+${typeDeclaration}
+export default {
+    buildDir: "${defaultConfig.buildDir}",
+    huzmaName: "${defaultConfig.huzmaName}"
+}
+    `.trim()
+    await fs.writeFile(path, file, {encoding: "utf-8"})
+    console.info(`✅ successfully generated huzma file at "${path}"`)
 }

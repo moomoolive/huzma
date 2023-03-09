@@ -186,6 +186,37 @@ async function createHuzma({
   console.info("generated huzma", pkg);
   console.info(`✅ huzma file generated successfully (${filename})`);
 }
+const HUZMA_CLI_DOCS_LINK = "https://github.com/moomoolive/huzma";
+async function initHuzma({
+  path = DEAULT_CONFIG_FILE,
+  template = ""
+} = {}) {
+  if (!path.endsWith("js") && !path.endsWith("mjs")) {
+    console.error(`huzma config file must be a js file (ending with "js" or "mjs"), got "${path}"`);
+    return;
+  }
+  const typeDeclaration = (() => {
+    switch (template) {
+      default:
+        return `/** @type {import("huzma").HuzmaCliConfig} */`;
+    }
+  })();
+  const defaultConfig = {
+    buildDir: "dist",
+    huzmaName: "default.huzma.json"
+  };
+  const file = `
+// docs: ${HUZMA_CLI_DOCS_LINK}
+${typeDeclaration}
+export default {
+    buildDir: "${defaultConfig.buildDir}",
+    huzmaName: "${defaultConfig.huzmaName}"
+}
+    `.trim();
+  await fs.writeFile(path, file, { encoding: "utf-8" });
+  console.info(`✅ successfully generated huzma file at "${path}"`);
+}
 export {
-  createHuzma
+  createHuzma,
+  initHuzma
 };
