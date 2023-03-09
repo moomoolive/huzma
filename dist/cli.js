@@ -197,6 +197,8 @@ async function initHuzma({
   }
   const typeDeclaration = (() => {
     switch (template) {
+      case "zakhaarif":
+        return `/** @type {import("zakhaarif-dev-tools").HuzmaConfig} */`;
       default:
         return `/** @type {import("huzma").HuzmaCliConfig} */`;
     }
