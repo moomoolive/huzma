@@ -243,6 +243,58 @@ describe("manifest validation function", () => {
         expect(validateManifest(pkg).errors).length(0)
     })
 
+    it("should not return error if entry is not one of listed files", () => {
+        const pkg = structuredClone(manifest)
+        pkg.entry = "some_random_file.js"
+        expect(validateManifest(pkg).errors).length(0)
+    })
+
+    it("should return error if entry is not a relative or absolute url", () => {
+        const tests = [
+            "some file.js",
+            "cool                 .js",
+            "https://example.com/ invalid resource"
+        ]
+        for (const entry of tests) {
+            const pkg = structuredClone(manifest)
+            pkg.entry = entry
+            expect(validateManifest(pkg).errors.length).toBeGreaterThan(0)
+        }
+    })
+
+    it("should not return error if crate logo url is not found in files", () => {
+        const pkg = structuredClone(manifest)
+        pkg.crateLogoUrl = "https://example.com/logo.png"
+        expect(validateManifest(pkg).errors).length(0)
+    })
+
+    it("should not return error if crate logo url is not found in files", () => {
+        const tests = [
+            "some file.js",
+            "cool                 .js",
+            "https://example.com/ invalid resource"
+        ]
+        for (const crateLogoUrl of tests) {
+            const pkg = structuredClone(manifest)
+            pkg.crateLogoUrl = crateLogoUrl
+            expect(validateManifest(pkg).errors.length).toBeGreaterThan(0)
+        }
+    })
+
+
+    it("should return error if on of files is not a relative or absolute url", () => {
+        const tests = [
+            "some file.js",
+            "cool                 .js",
+            "https://example.com/ invalid resource"
+        ]
+        for (const file of tests) {
+            const pkg = structuredClone(manifest)
+            pkg.files.push({name: file, bytes: 0, invalidation: "default"})
+            expect(validateManifest(pkg).errors.length).toBeGreaterThan(0)
+        }
+    })
+
     it("should return error if cargo.schema is not a valid version", () => {
         const m = structuredClone(manifest)
         m.schema = "random_version" as any
@@ -317,17 +369,6 @@ describe("manifest validation function", () => {
         {((m.files[0] as any).bytes) = Symbol()}
         expect(validateManifest(m).errors.length).toBe(0)
         expect(validateManifest(m).pkg.files[0].bytes).toBe(BYTES_NOT_INCLUDED)
-    })
-
-    it(`should return error if cargo.entry is provided but is not the name of one of cargo files, unless entry is '${NULL_FIELD}'`, () => {
-        const entry = (entry: string) => {
-            const m = structuredClone(manifest)
-            m.entry = entry
-            return validateManifest(m)
-        }
-        expect(entry("random_file_not_listed.js").errors.length).toBeGreaterThan(0)        
-        expect(entry("another.js").errors.length).toBeGreaterThan(0)        
-        expect(entry(NULL_FIELD).errors.length).toBe(0)        
     })
 
     it("should not return error if cargo.entry is set to NULL_FIELD or empty string", () => {

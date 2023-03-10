@@ -151,6 +151,14 @@ const toInvalidation = (invalidation) => {
       return "default";
   }
 };
+const RANDOM_BASE_URL = "https://example.com";
+function isUrl(url) {
+  try {
+    return url === encodeURIComponent(url) && !!new URL(url, RANDOM_BASE_URL);
+  } catch {
+    return false;
+  }
+}
 function validateManifest(cargo) {
   var _a, _b;
   const out = {
@@ -192,6 +200,9 @@ function validateManifest(cargo) {
   for (let i = 0; i < files.length; i++) {
     const preFile = files[i];
     if (typeof preFile === "string") {
+      if (!isUrl(preFile)) {
+        errors.push(`files should be a valid url. got "${preFile}"`);
+      }
       files[i] = { name: preFile, bytes: 0, invalidation: "default" };
     }
     const file = files[i];
@@ -199,8 +210,12 @@ function validateManifest(cargo) {
       errors.push(`file ${i} is not an object. Expected an object with a "name" field, got ${betterTypeof(file)}`);
       break;
     }
-    if (typeof (file == null ? void 0 : file.name) !== "string" || typeof ((file == null ? void 0 : file.invalidation) || "") !== "string") {
-      errors.push(`file ${i} is not a valid file format, file.name and file.invalidation must be a string`);
+    if (typeof (file == null ? void 0 : file.name) !== "string" || !isUrl(file.name)) {
+      errors.push(`file ${i} is not a valid file format, file.name and must be a valid absolute or relative url. got ${file.name}`);
+      break;
+    }
+    if (typeof ((file == null ? void 0 : file.invalidation) || "") !== "string") {
+      errors.push(`file ${i} is not a valid file format, file.invalidation must be a string`);
       break;
     }
     const stdName = stripRelativePath(file.name);
@@ -259,10 +274,13 @@ function validateManifest(cargo) {
       value: value.filter((val) => typeof val === "string")
     });
   }
-  pkg.entry = orNull(c.entry);
-  if (pkg.entry !== NULL_FIELD && !fileRecord.has(pkg.entry)) {
-    errors.push(`entry must be one of package listed files, got ${pkg.entry}`);
+  c.entry = orNull(c.entry);
+  if (!typevalid(c, "entry", "string", errors))
+    ;
+  if (c.entry !== NULL_FIELD && !isUrl(c.entry)) {
+    errors.push(`entry field must be a valid relative or absolute url. got "${pkg.entry}"`);
   }
+  pkg.entry = c.entry;
   pkg.invalidation = typeof c.invalidation === "string" ? toInvalidation(c.invalidation) : "default";
   pkg.description = orNull(c.description);
   pkg.authors = (c.authors || []).filter((a) => typeof (a == null ? void 0 : a.name) === "string").map(({ name = "", email, url }) => ({

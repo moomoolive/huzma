@@ -261,6 +261,20 @@ const toInvalidation = (invalidation: string) => {
     }
 }
 
+const RANDOM_BASE_URL = "https://example.com"
+
+function isUrl(url: string): boolean {
+    try {
+        const fullUrl = new URL(url, RANDOM_BASE_URL)
+        return (
+            !!fullUrl
+            && decodeURI(fullUrl.href) === fullUrl.href 
+        )
+    } catch {
+        return false
+    }
+}
+
 export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
     
     const out: ValidatedCodeManfiest = {
@@ -312,6 +326,9 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
     for (let i = 0; i < files.length; i++) {
         const preFile = files[i]
         if (typeof preFile === "string") {
+            if (!isUrl(preFile)) {
+                errors.push(`files should be a valid url. got "${preFile}"`)
+            }
             files[i] = {name: preFile, bytes: 0, invalidation: "default"}
         }
         const file = files[i] as Partial<{name: string, bytes: 0, invalidation: string}>
@@ -319,13 +336,16 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
             errors.push(`file ${i} is not an object. Expected an object with a "name" field, got ${betterTypeof(file)}`)
             break
         }
-        if (
-            typeof file?.name !== "string" 
-            || typeof (file?.invalidation || "") !== "string" 
-        ) {
-            errors.push(`file ${i} is not a valid file format, file.name and file.invalidation must be a string`)
+        if (typeof file?.name !== "string" || !isUrl(file.name)) {
+            errors.push(`file ${i} is not a valid file format, file.name and must be a valid absolute or relative url. got ${file.name}`)
             break
         }
+
+        if (typeof (file?.invalidation || "") !== "string") {
+            errors.push(`file ${i} is not a valid file format, file.invalidation must be a string`)
+            break
+        }
+
         const stdName = stripRelativePath(file.name)
         // ignore duplicate files
         if (fileRecord.has(stdName)) {
@@ -387,10 +407,12 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
         })
     }
 
-    pkg.entry = orNull(c.entry)
-    if (pkg.entry !== NULL_FIELD && !fileRecord.has(pkg.entry)) {
-        errors.push(`entry must be one of package listed files, got ${pkg.entry}`)
+    c.entry = orNull(c.entry)
+    if (!typevalid(c, "entry", "string", errors)) {}
+    if (c.entry !== NULL_FIELD && !isUrl(c.entry)) {
+        errors.push(`entry field must be a valid relative or absolute url. got "${pkg.entry}"`)
     }
+    pkg.entry = c.entry
 
     pkg.invalidation = typeof c.invalidation === "string"
         ? toInvalidation(c.invalidation)
@@ -402,8 +424,10 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
             name,  email: orNull(email), url: orNull(url)
         }))
     pkg.crateLogoUrl = stripRelativePath(orNull(c.crateLogoUrl))
-    pkg.keywords = (c.keywords || [])
-        .filter(w => typeof w === "string")
+    if (pkg.crateLogoUrl !== NULL_FIELD && !isUrl(pkg.crateLogoUrl)) {
+        errors.push(`crateLogoUrl should be a valid relative or absolute url`)
+    }
+    pkg.keywords = (c.keywords || []).filter(w => typeof w === "string")
     pkg.license = orNull(c.license)
     pkg.repo.type = orNull(c.repo?.type)
     pkg.repo.url = orNull(c.repo?.url)
