@@ -280,21 +280,7 @@ describe("manifest validation function", () => {
             expect(validateManifest(pkg).errors.length).toBeGreaterThan(0)
         }
     })
-
-
-    it("should return error if on of files is not a relative or absolute url", () => {
-        const tests = [
-            "some file.js",
-            "cool                 .js",
-            "https://example.com/ invalid resource"
-        ]
-        for (const file of tests) {
-            const pkg = structuredClone(manifest)
-            pkg.files.push({name: file, bytes: 0, invalidation: "default"})
-            expect(validateManifest(pkg).errors.length).toBeGreaterThan(0)
-        }
-    })
-
+    
     it("should return error if cargo.schema is not a valid version", () => {
         const m = structuredClone(manifest)
         m.schema = "random_version" as any

@@ -154,7 +154,8 @@ const toInvalidation = (invalidation) => {
 const RANDOM_BASE_URL = "https://example.com";
 function isUrl(url) {
   try {
-    return url === encodeURIComponent(url) && !!new URL(url, RANDOM_BASE_URL);
+    const fullUrl = new URL(url, RANDOM_BASE_URL);
+    return !!fullUrl && decodeURI(fullUrl.href) === fullUrl.href;
   } catch {
     return false;
   }
@@ -200,9 +201,6 @@ function validateManifest(cargo) {
   for (let i = 0; i < files.length; i++) {
     const preFile = files[i];
     if (typeof preFile === "string") {
-      if (!isUrl(preFile)) {
-        errors.push(`files should be a valid url. got "${preFile}"`);
-      }
       files[i] = { name: preFile, bytes: 0, invalidation: "default" };
     }
     const file = files[i];
@@ -210,7 +208,7 @@ function validateManifest(cargo) {
       errors.push(`file ${i} is not an object. Expected an object with a "name" field, got ${betterTypeof(file)}`);
       break;
     }
-    if (typeof (file == null ? void 0 : file.name) !== "string" || !isUrl(file.name)) {
+    if (typeof (file == null ? void 0 : file.name) !== "string") {
       errors.push(`file ${i} is not a valid file format, file.name and must be a valid absolute or relative url. got ${file.name}`);
       break;
     }
@@ -289,6 +287,9 @@ function validateManifest(cargo) {
     url: orNull(url)
   }));
   pkg.crateLogoUrl = stripRelativePath(orNull(c.crateLogoUrl));
+  if (pkg.crateLogoUrl !== NULL_FIELD && !isUrl(pkg.crateLogoUrl)) {
+    errors.push(`crateLogoUrl should be a valid relative or absolute url`);
+  }
   pkg.keywords = (c.keywords || []).filter((w) => typeof w === "string");
   pkg.license = orNull(c.license);
   pkg.repo.type = orNull((_a = c.repo) == null ? void 0 : _a.type);

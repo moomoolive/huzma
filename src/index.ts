@@ -326,9 +326,6 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
     for (let i = 0; i < files.length; i++) {
         const preFile = files[i]
         if (typeof preFile === "string") {
-            if (!isUrl(preFile)) {
-                errors.push(`files should be a valid url. got "${preFile}"`)
-            }
             files[i] = {name: preFile, bytes: 0, invalidation: "default"}
         }
         const file = files[i] as Partial<{name: string, bytes: 0, invalidation: string}>
@@ -336,7 +333,7 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
             errors.push(`file ${i} is not an object. Expected an object with a "name" field, got ${betterTypeof(file)}`)
             break
         }
-        if (typeof file?.name !== "string" || !isUrl(file.name)) {
+        if (typeof file?.name !== "string") {
             errors.push(`file ${i} is not a valid file format, file.name and must be a valid absolute or relative url. got ${file.name}`)
             break
         }
