@@ -27,13 +27,14 @@ export type HuzmaCliConfig<Permissions extends PermissionsListRaw = PermissionsL
     permissions?: PermissionsListOptions<Permissions>;
     metadata?: Record<string, string>;
 };
-export declare function createHuzma({ configFileName, packageJsonPath, outFile, huzmaName, buildDir, inlineConfigFile }?: {
+export declare function createHuzma({ configFileName, packageJsonPath, outFile, huzmaName, buildDir, inlineConfigFile, disablePackageJsonFill }?: {
     configFileName?: string | undefined;
     packageJsonPath?: string | undefined;
     outFile?: string | undefined;
     huzmaName?: string | undefined;
     buildDir?: string | undefined;
     inlineConfigFile?: HuzmaCliConfig<PermissionsListRaw> | null | undefined;
+    disablePackageJsonFill?: boolean | undefined;
 }): Promise<void>;
 export type TemplateOptions = "" | "zakhaarif";
 export declare function initHuzma({ path, template }?: {

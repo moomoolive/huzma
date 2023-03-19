@@ -11,6 +11,7 @@ const options = commandLineArgs([
     {name: "outFile", alias: "o", type: String},
     {name: "huzmaName", alias: "n",  type: String},
     {name: "buildDir", alias: "d", type: String},
+    {name: "disablePackageJsonFill", type: Boolean}
 ])
 
 createHuzma(options)

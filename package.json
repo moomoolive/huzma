@@ -1,6 +1,6 @@
 {
   "name": "huzma",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "license": "MIT",
   "type": "module",
   "description": "A manifest format for browser-based package managers",
@@ -8,7 +8,7 @@
     "test": "vitest run",
     "test-watch": "vitest watch",
     "ci": "npm run test",
-    "docs": "typedoc --out docs src/index.ts",
+    "docs": "typedoc --out docs src/index.ts src/cli.ts",
     "build-node": "vite build",
     "build-web": "node ./webBuild.mjs",
     "build": "npm run build-node && npm run build-web"

@@ -25,7 +25,8 @@ async function createHuzma({
   outFile = "",
   huzmaName = "",
   buildDir = "",
-  inlineConfigFile = null
+  inlineConfigFile = null,
+  disablePackageJsonFill = false
 } = {}) {
   if (configFileName.length < 1 && !inlineConfigFile) {
     console.error("no config file name was specificed and inline config was not provided");
@@ -84,6 +85,9 @@ async function createHuzma({
     return;
   }
   const parsedPackageJson = await (async () => {
+    if (disablePackageJsonFill) {
+      return null;
+    }
     try {
       const packageJsonFilePath = parsedConfig.data.packageJsonPath || packageJsonPath || "";
       const packageJson = await fs.readFile(packageJsonFilePath, {
@@ -91,17 +95,17 @@ async function createHuzma({
       });
       const jsObject = JSON.parse(packageJson);
       const schema = z.object({
-        name: z.string().default(""),
-        version: z.string().default(""),
-        description: z.string().default(""),
+        name: z.string().optional(),
+        version: z.string().optional(),
+        description: z.string().optional(),
         keywords: z.array(z.string()).default([]),
-        homepage: z.string().default(""),
-        license: z.string().default(""),
+        homepage: z.string().optional(),
+        license: z.string().optional(),
         contributors: z.array(z.object({
           name: z.string().default(""),
           email: z.string().optional(),
           url: z.string().optional()
-        })).default([]),
+        })).optional(),
         repository: z.object({
           type: z.string(),
           url: z.string()
