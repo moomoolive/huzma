@@ -16,7 +16,7 @@ export type HuzmaCliConfig<Permissions extends PermissionsListRaw = PermissionsL
         email?: string;
         url?: string;
     }[];
-    crateLogoUrl?: string;
+    logoUrl?: string;
     keywords?: string[];
     license?: string;
     repo?: {

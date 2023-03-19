@@ -55,7 +55,7 @@ class HuzmaManifest {
     invalidation = "default",
     description = NULL_FIELD,
     authors = [],
-    crateLogoUrl = NULL_FIELD,
+    logoUrl = NULL_FIELD,
     keywords = [],
     license = NULL_FIELD,
     repo = { type: NULL_FIELD, url: NULL_FIELD },
@@ -73,7 +73,7 @@ class HuzmaManifest {
     __publicField(this, "invalidation");
     __publicField(this, "description");
     __publicField(this, "authors");
-    __publicField(this, "crateLogoUrl");
+    __publicField(this, "logoUrl");
     __publicField(this, "keywords");
     __publicField(this, "license");
     __publicField(this, "repo");
@@ -87,7 +87,7 @@ class HuzmaManifest {
     };
     this.license = license;
     this.keywords = keywords;
-    this.crateLogoUrl = stripRelativePath(crateLogoUrl);
+    this.logoUrl = stripRelativePath(logoUrl);
     this.authors = authors.map(({
       name: name2 = NULL_FIELD,
       email = NULL_FIELD,
@@ -286,9 +286,9 @@ function validateManifest(cargo) {
     email: orNull(email),
     url: orNull(url)
   }));
-  pkg.crateLogoUrl = stripRelativePath(orNull(c.crateLogoUrl));
-  if (pkg.crateLogoUrl !== NULL_FIELD && !isUrl(pkg.crateLogoUrl)) {
-    errors.push(`crateLogoUrl should be a valid relative or absolute url`);
+  pkg.logoUrl = stripRelativePath(orNull(c.logoUrl));
+  if (pkg.logoUrl !== NULL_FIELD && !isUrl(pkg.logoUrl)) {
+    errors.push(`logoUrl should be a valid relative or absolute url`);
   }
   pkg.keywords = (c.keywords || []).filter((w) => typeof w === "string");
   pkg.license = orNull(c.license);

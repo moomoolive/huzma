@@ -149,7 +149,7 @@ export class HuzmaManifest<
     invalidation: InvalidationStrategy
     description: string
     authors: Array<{ name: string, email: string, url: string }>
-    crateLogoUrl: string
+    logoUrl: string
     keywords: string[]
     license: string
     repo: {type: RepoType, url: string}
@@ -168,7 +168,7 @@ export class HuzmaManifest<
         invalidation = "default",
         description = NULL_FIELD,
         authors = [],
-        crateLogoUrl = NULL_FIELD,
+        logoUrl = NULL_FIELD,
         keywords = [],
         license = NULL_FIELD,
         repo = {type: NULL_FIELD, url: NULL_FIELD},
@@ -183,7 +183,7 @@ export class HuzmaManifest<
         }
         this.license = license
         this.keywords = keywords
-        this.crateLogoUrl = stripRelativePath(crateLogoUrl)
+        this.logoUrl = stripRelativePath(logoUrl)
         this.authors = authors.map(({
             name = NULL_FIELD, 
             email = NULL_FIELD, 
@@ -420,9 +420,9 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
         .map(({name = "", email, url}) => ({
             name,  email: orNull(email), url: orNull(url)
         }))
-    pkg.crateLogoUrl = stripRelativePath(orNull(c.crateLogoUrl))
-    if (pkg.crateLogoUrl !== NULL_FIELD && !isUrl(pkg.crateLogoUrl)) {
-        errors.push(`crateLogoUrl should be a valid relative or absolute url`)
+    pkg.logoUrl = stripRelativePath(orNull(c.logoUrl))
+    if (pkg.logoUrl !== NULL_FIELD && !isUrl(pkg.logoUrl)) {
+        errors.push(`logoUrl should be a valid relative or absolute url`)
     }
     pkg.keywords = (c.keywords || []).filter(w => typeof w === "string")
     pkg.license = orNull(c.license)

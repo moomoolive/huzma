@@ -89,7 +89,7 @@ export declare class HuzmaManifest<Permissions extends PermissionsListRaw = Read
         email: string;
         url: string;
     }>;
-    crateLogoUrl: string;
+    logoUrl: string;
     keywords: string[];
     license: string;
     repo: {
@@ -99,7 +99,7 @@ export declare class HuzmaManifest<Permissions extends PermissionsListRaw = Read
     homepageUrl: string;
     permissions: PermissionsList<Permissions>;
     metadata: Record<string, string>;
-    constructor({ schema, name, version, files, entry, invalidation, description, authors, crateLogoUrl, keywords, license, repo, homepageUrl, permissions, metadata }?: ManifestOptions<Permissions>);
+    constructor({ schema, name, version, files, entry, invalidation, description, authors, logoUrl, keywords, license, repo, homepageUrl, permissions, metadata }?: ManifestOptions<Permissions>);
 }
 export type ValidatedCodeManfiest = {
     pkg: HuzmaManifest;

@@ -1,6 +1,6 @@
 {
   "name": "huzma",
-  "version": "0.5.5",
+  "version": "0.6.0",
   "license": "MIT",
   "type": "module",
   "description": "A manifest format for browser-based package managers",

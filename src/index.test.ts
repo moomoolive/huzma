@@ -264,7 +264,7 @@ describe("manifest validation function", () => {
 
     it("should not return error if crate logo url is not found in files", () => {
         const pkg = structuredClone(manifest)
-        pkg.crateLogoUrl = "https://example.com/logo.png"
+        pkg.logoUrl = "https://example.com/logo.png"
         expect(validateManifest(pkg).errors).length(0)
     })
 
@@ -274,9 +274,9 @@ describe("manifest validation function", () => {
             "cool                 .js",
             "https://example.com/ invalid resource"
         ]
-        for (const crateLogoUrl of tests) {
+        for (const logoUrl of tests) {
             const pkg = structuredClone(manifest)
-            pkg.crateLogoUrl = crateLogoUrl
+            pkg.logoUrl = logoUrl
             expect(validateManifest(pkg).errors.length).toBeGreaterThan(0)
         }
     })
@@ -387,7 +387,7 @@ describe("manifest validation function", () => {
         expect(del("invalidation").errors.length).toBe(0)
         expect(del("description").errors.length).toBe(0)
         expect(del("authors").errors.length).toBe(0)
-        expect(del("crateLogoUrl").errors.length).toBe(0)
+        expect(del("logoUrl").errors.length).toBe(0)
         expect(del("keywords").errors.length).toBe(0)
         expect(del("license").errors.length).toBe(0)
         expect(del("repo").errors.length).toBe(0)

@@ -62,7 +62,7 @@ async function createHuzma({
         email: z.string().optional(),
         url: z.string().optional()
       })).optional(),
-      crateLogoUrl: z.string().optional(),
+      logoUrl: z.string().optional(),
       keywords: z.array(z.string()).optional(),
       license: z.string().optional(),
       repo: z.object({
@@ -137,7 +137,7 @@ async function createHuzma({
       ...config.invalidation ? { invalidation: config.invalidation } : {},
       ...description ? { description } : {},
       ...authors.length > 0 ? { authors } : {},
-      ...config.crateLogoUrl ? { crateLogoUrl: config.crateLogoUrl } : {},
+      ...config.logoUrl ? { logoUrl: config.logoUrl } : {},
       ...keywords.length > 0 ? { keywords } : {},
       ...license ? { license } : {},
       ...repo ? { repo } : {},
