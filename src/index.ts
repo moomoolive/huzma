@@ -8,8 +8,8 @@ export const NULL_FIELD = ""
 export const FIRST_SCHEMA_VERSION = 1
 export const LATEST_SCHEMA_VERSION = 2
 /**
- * Returned for files that do not provide "bytes"
- * field
+ * Represents bytes for files that do 
+ * not provide "bytes" field
  */
 export const BYTES_NOT_INCLUDED = -1
 
@@ -301,8 +301,8 @@ function isUrl(url: string): boolean {
 /**
  * Check if inputted value is a valid huzma
  * manifest. Notes: 
- * - Any members of "file" key do not
- * include a "bytes" key, "bytes" will be set
+ * - Any members of "file" key that do not
+ * include a "bytes" key will have it set
  * to BYTES_NOT_INCLUDED constant. 
  * - Any string members not present in 
  * parsed manifest will be set NULL_FIELD constant.
@@ -538,11 +538,11 @@ export type FileRef = {
 
 export class HuzmaUpdateDetails {
     /**
-     * A list of files that are requested to be cached
+     * A list of files requested to be cached
      */
     add: FileRef[]
     /**
-     * A list of files that should be removed for cache
+     * A list of files that should be removed from cache
      */
     delete: FileRef[]
 
@@ -557,8 +557,9 @@ export class HuzmaUpdateDetails {
  * 
  * @param newManifest updated manifest
  * @param oldManifest previously cached manifest
- * @param defaultInvalidation if file invalidation is not mentioned
- * which invalidation strategy should be used
+ * @param defaultInvalidation if file invalidation is not 
+ * included for a given file which invalidation 
+ * strategy should be used
  */
 export function diffManifestFiles(
     newManifest: HuzmaManifest, 
