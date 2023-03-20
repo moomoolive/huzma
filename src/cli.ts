@@ -13,15 +13,32 @@ import {
 import filePathFilter from "@jsdevtools/file-path-filter"
 import fsSync from "fs"
 
+/**
+ * A configuration file for Huzma cli commands
+ */
 export type HuzmaCliConfig<
     Permissions extends PermissionsListRaw = PermissionsListRaw
 > = {
     // cli-metadata
+    /**
+     * Path to package files.
+     */
     buildDir?: string
-    huzmaName?: string
+    /**
+     * An array of files, directories, globs, or regexes to 
+     * not include in the generated Huzma manifest's "files"
+     * key. 
+     */
     ignore?: string[]
+    /**
+     * Path where generated Huzma Manifest shoul be written
+     */
     outFile?: string
-    packageJsonPath?: string
+    /**
+     * Path of package.json to fill values from
+     */
+    packageJsonPath?: string,
+    disablePackageJsonFill?: boolean
 
     // required fields
     name?: string
@@ -57,11 +74,13 @@ const dirName = (dir = "") => {
     }
 }
 
+/**
+ * Create a huzma manifest file. 
+ */
 export async function createHuzma({
     configFileName = `${process.cwd()}/${DEAULT_CONFIG_FILE}`, 
     packageJsonPath = `${process.cwd()}/package.json`,
     outFile = "",
-    huzmaName = "",
     buildDir = "",
     inlineConfigFile = null as null | HuzmaCliConfig,
     disablePackageJsonFill = false
@@ -72,13 +91,24 @@ export async function createHuzma({
     }
 
     const configFile = await (async () => {
-        if (inlineConfigFile) {
-            return {default: inlineConfigFile}
-        }
         if (!fsSync.existsSync(configFileName)) {
             throw new Error(`input config file "${configFileName.split("/").at(-1) || "unknown"}" does not exist (${configFileName})`)
         }
-        return await import(configFileName)
+        const importedConfig = await import(configFileName)
+        if (
+            "default" in importedConfig
+            && typeof importedConfig.default === "object"
+            && importedConfig.default !== null
+            && !Array.isArray(importedConfig.default)
+        ) {
+            return {
+                default: {
+                    ...(inlineConfigFile || {}),
+                    ...importedConfig.default
+                }
+            }
+        }
+        return importedConfig
     })()
 
     if (!("default" in configFile)) {
@@ -93,6 +123,7 @@ export async function createHuzma({
             ignore: z.array(z.string()).default([]),
             outFile: z.string().optional(),
             packageJsonPath: z.string().optional(),
+            disablePackageJsonFill: z.boolean().optional(),
 
             version: z.string().default(""),
             name: z.string().default(""),
@@ -130,7 +161,10 @@ export async function createHuzma({
     }
 
     const parsedPackageJson = await (async () => {
-        if (disablePackageJsonFill) {
+        if (
+            disablePackageJsonFill 
+            || configFile.default.disablePackageJsonFill
+        ) {
             return null
         }
         try {
@@ -221,17 +255,11 @@ export async function createHuzma({
     // create list of files for cargo
     const globs = ignore.filter((pattern) => pattern.includes("*"))
     const otherPatterns = ignore.filter((pattern) => !pattern.includes("*"))
-    
-    const huzmaFilename = (
-        huzmaName 
-        || parsedConfig.data.huzmaName 
-        || DEFAULT_HUZMA_NAME
-    )
 
     const filename = (
         outFile 
         || parsedConfig.data.outFile 
-        || dirName(finalBuildDir) + huzmaFilename
+        || dirName(finalBuildDir) + DEFAULT_HUZMA_NAME
     )
 
     if (!filename.endsWith(MANIFEST_FILE_SUFFIX)) {
@@ -276,6 +304,9 @@ export async function createHuzma({
 export type TemplateOptions = "" | "zakhaarif"
 const HUZMA_CLI_DOCS_LINK = "https://github.com/moomoolive/huzma"
 
+/**
+ * Initialize a humza config file.
+ */
 export async function initHuzma({
     path = DEAULT_CONFIG_FILE,
     template = "" as TemplateOptions
@@ -295,14 +326,12 @@ export async function initHuzma({
     })()
     const defaultConfig: HuzmaCliConfig = {
         buildDir: "dist",
-        huzmaName: "default.huzma.json"
     }
     const file = `
 // docs: ${HUZMA_CLI_DOCS_LINK}
 ${typeDeclaration}
 export default {
     buildDir: "${defaultConfig.buildDir}",
-    huzmaName: "${defaultConfig.huzmaName}"
 }
     `.trim()
     await fs.writeFile(path, file, {encoding: "utf-8"})

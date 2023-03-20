@@ -20,14 +20,24 @@
 <a href="#huzma-📦" id="huzma-📦" style="color: inherit; text-decoration: none;">
   <h1>Huzma 📦</h1>
 </a>
-<p>Huzma (the Arabic word for package, <a href="https://www.howtopronounce.com/arabic/%D8%AD%D8%B2%D9%85%D8%A9">pronounced like this</a>, spelt in Arabic حزمة) is a manifest format for browser-based package managers. Originally made to import game mods into the <a href="https://github.com/moomoolive/zakhaarif-launcher">Zakhaarif Launcher</a>.</p>
-<p>Table of Contents:</p>
+<blockquote>
+<p>A manifest format for browser-based package managers</p>
+</blockquote>
 <ul>
 <li><a href="#installation">Installation</a></li>
 <li><a href="#specification">Specification</a></li>
+<li><a href="#invalidations">Invalidations</a></li>
 <li><a href="#command-line-tools">Command Line</a></li>
 <li><a href="https://moomoolive.github.io/huzma/">API Reference</a></li>
 </ul>
+<p>Huzma (the Arabic word for package, <a href="https://www.howtopronounce.com/arabic/%D8%AD%D8%B2%D9%85%D8%A9">pronounced like this</a>, spelt in Arabic حزمة) is a manifest format for browser-based package managers. This library is a Javascript implementation of the Huzma manifest format which includes:</p>
+<ul>
+<li><p>Various <a href="https://moomoolive.github.io/huzma/">functions, constants, and types</a> to aid in creating and validating huzma manifests.</p>
+</li>
+<li><p>A <a href="#command-line-tools">command line interface</a> to ease automation.</p>
+</li>
+</ul>
+<p>Originally made to import game mods into the <a href="https://github.com/moomoolive/zakhaarif-launcher">Zakhaarif Launcher</a>, this format takes inspiration from Node&#39;s <a href="https://docs.npmjs.com/cli/v9/configuring-npm/package-json">package.json</a> and Rust&#39;s <a href="https://doc.rust-lang.org/cargo/reference/manifest.html">cargo.toml</a> manifest formats.</p>
 
 <a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
   <h2>Installation</h2>
@@ -41,26 +51,33 @@
 <p>A huzma is a json file that has the file extension <code>.huzma.json</code> and includes these keys:</p>
 <p><strong>⚠️ Required</strong></p>
 <ul>
-<li><p><code>schema</code>: ,  an integer value of <code>1</code> to latest version (<code>2</code>), indicating which huzma version package is used.</p>
+<li><p><code>schema</code>: an integer value of <code>1</code> or <code>2</code>, indicating which huzma version is used.</p>
 </li>
-<li><p><code>name</code>: <strong>Required</strong>, a string naming your package.</p>
+<li><p><code>name</code>: a string naming package.</p>
 </li>
-<li><p><code>version</code>: <strong>Required</strong>, a vaild <a href="https://medium.com/the-non-traditional-developer/semantic-versioning-for-dummies-45c7fe04a1f8">semver (semantic version)</a> string, indicating the version of package.</p>
+<li><p><code>version</code>: a vaild <a href="https://medium.com/the-non-traditional-developer/semantic-versioning-for-dummies-45c7fe04a1f8">semver (semantic version)</a> string, indicating the version of package. Implementation provided by <a href="https://github.com/moomoolive/small-semver">small-semver package</a>.</p>
 </li>
 </ul>
 <p><strong>✅ Optional</strong></p>
 <ul>
-<li><p><code>files</code>: soon...</p>
+<li><p><code>files</code>: an array of strings or objects indicating files that should be cached on disk if possible (via <a href="https://developer.mozilla.org/en-US/docs/Web/API/Cache"><code>Cache API</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB"><code>IndexedDB</code></a>, etc.). Objects must include a string value at <code>name</code> field and an optional integer value at <code>bytes</code> field and <a href="#invalidations">invalidation (string)</a> at <code>invalidation</code> field.</p>
+<p>  If a string value is provided it indicates the relative url of a file. If an object value is provided the <code>name</code> field repersents the relative url of a file, the <code>invalidation</code> field repersents how file should be <a href="#invalidations">diffed on package update</a>,
+  and the <code>bytes</code> field repersents uncompressed size of file in bytes. </p>
+<p>  All File urls must be relative to huzma manifest and cannot be an absolute url or start with <code>../</code>.</p>
+<p>  <strong>Example:</strong></p>
+<pre><code class="language-json"><span class="hl-0">{</span><br/><span class="hl-0">    </span><span class="hl-2">&quot;files&quot;</span><span class="hl-0">: [</span><br/><span class="hl-0">        </span><span class="hl-1">&quot;index.js&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-1">&quot;./index.js&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-1">&quot;assets/cat.png&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        {</span><span class="hl-2">&quot;name&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;assets/doggo.png&quot;</span><span class="hl-0">},</span><br/><span class="hl-0">        {</span><span class="hl-2">&quot;name&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;styles/style.css&quot;</span><span class="hl-0">, </span><span class="hl-2">&quot;bytes&quot;</span><span class="hl-0">: </span><span class="hl-3">1234</span><span class="hl-0">},</span><br/><span class="hl-0">        {</span><br/><span class="hl-0">            </span><span class="hl-2">&quot;name&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;multi-thread.wasm&quot;</span><span class="hl-0">, </span><br/><span class="hl-0">            </span><span class="hl-2">&quot;invalidation&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;purge&quot;</span><br/><span class="hl-0">        },</span><br/><span class="hl-0">        {</span><br/><span class="hl-0">            </span><span class="hl-2">&quot;name&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;config.json&quot;</span><span class="hl-0">, </span><br/><span class="hl-0">            </span><span class="hl-2">&quot;invalidation&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;url-diff&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">            </span><span class="hl-2">&quot;bytes&quot;</span><span class="hl-0">: </span><span class="hl-3">10540</span><br/><span class="hl-0">        }</span><br/><span class="hl-0">    ]</span><br/><span class="hl-0">}</span>
+</code></pre>
 </li>
-<li><p><code>entry</code>: a relative url to an entry script (e.g <code>./index.js</code>, <code>main.js</code>). Note that entry url must be within the same scope as huzma and cannot exceed it. This means that absolute urls and relative urls that start with <code>../</code> are not acceptable.</p>
-<p>  <strong>Acceptable</strong>: <code>main.js</code>, <code>./main.js</code>, <code>./assets/main.js</code>, etc.</p>
-<p>  <strong>Unacceptable</strong>: <code>../main.js</code>, <code>https://your-site.com/main.js</code>, <code>../not-in-scope-assets/main.js</code>, etc.</p>
+<li><p><code>entry</code>: a url relative to huzma manifest that denotes an entry script (cannot be an absolute url or start with <code>../</code>.). This communicates to package managers which file to import in order to execute code included in package.</p>
 </li>
-<li><p><code>invalidation</code>: soon...</p>
+<li><p><code>invalidation</code>: specify the default <a href="#invalidations">invalidation strategy</a> for all files mentioned in <code>files</code> field.</p>
 </li>
 <li><p><code>description</code>: a string that describes package.</p>
 </li>
-<li><p><code>authors</code>: soon...</p>
+<li><p><code>authors</code>: an array of objects repersenting project maintainers / main contributors. Object must include a string value at <code>name</code> field, and optionally can provide an email value at <code>email</code> field and url (absolute) for at <code>url</code> field.</p>
+<p>  <strong>Example:</strong></p>
+<pre><code class="language-json"><span class="hl-0">{</span><br/><span class="hl-0">    </span><span class="hl-2">&quot;authors&quot;</span><span class="hl-0">: [</span><br/><span class="hl-0">        {</span><span class="hl-2">&quot;name&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;moomoolive&quot;</span><span class="hl-0">}, </span><br/><span class="hl-0">        {</span><br/><span class="hl-0">            </span><span class="hl-2">&quot;name&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;milk_farmer&quot;</span><span class="hl-0">, </span><br/><span class="hl-0">            </span><span class="hl-2">&quot;email&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;lactose-free@dairy.com&quot;</span><br/><span class="hl-0">        }, </span><br/><span class="hl-0">        {</span><br/><span class="hl-0">            </span><span class="hl-2">&quot;name&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;pure_lactose&quot;</span><span class="hl-0">, </span><br/><span class="hl-0">            </span><span class="hl-2">&quot;email&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;we-love-lactose@farm.com&quot;</span><span class="hl-0">, </span><br/><span class="hl-0">            </span><span class="hl-2">&quot;url&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;https://whatsinyourmilk.milk&quot;</span><br/><span class="hl-0">        }</span><br/><span class="hl-0">    ]</span><br/><span class="hl-0">}</span>
+</code></pre>
 </li>
 <li><p><code>logoUrl</code>: a relative or absolute url to a picture that repersents package. Examples: <code>https://yo-mamas.house/logo.png</code>, <code>./silly-logo.jpg</code>, etc.</p>
 </li>
@@ -68,58 +85,123 @@
 </li>
 <li><p><code>license</code>: a string denoting license granted to package user. Examples: <code>MIT</code>, <code>GPL-3</code>, <code>Apache-2</code>, <code>My-Own-Cool-License</code>, etc.</p>
 </li>
-<li><p><code>repo</code>: soon...</p>
+<li><p><code>repo</code>: an object representing package&#39;s code repository, with an optional string value at <code>type</code> field and url at <code>url</code> field.</p>
+<p>  <strong>Example:</strong></p>
+<pre><code class="language-json"><span class="hl-0">{</span><br/><span class="hl-0">    </span><span class="hl-2">&quot;repo&quot;</span><span class="hl-0">: {</span><br/><span class="hl-0">        </span><span class="hl-2">&quot;type&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;git&quot;</span><span class="hl-0">, </span><br/><span class="hl-0">        </span><span class="hl-2">&quot;url&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;https://github.com/moomoolive/huzma&quot;</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">}</span>
+</code></pre>
 </li>
-<li><p><code>homepageUrl</code>: an absolute url of package website. Example: <code>https://www.nexusmods.com/my-amazing-mod-homepage</code></p>
+<li><p><code>homepageUrl</code>: absolute url to package website. Example: <code>https://www.nexusmods.com/my-amazing-mod-homepage</code></p>
 </li>
-<li><p><code>permissions</code>: soon...</p>
+<li><p><code>permissions</code>: an array of strings or objects with a string value at <code>key</code> field and an array of strings at <code>value</code> field. A string value (i.e <code>&quot;permission&quot;</code>) is equivalent to an object with a string value at <code>key</code> field and an empty array at <code>value</code> field (i.e <code>{ &quot;key&quot;: &quot;permission&quot;, &quot;value&quot;: [] }</code>). </p>
+<p>  It is up to package managers to implement a concrete set of permissions.</p>
+<p>  <strong>Example:</strong></p>
+<pre><code class="language-json"><span class="hl-0">{</span><br/><span class="hl-0">    </span><span class="hl-2">&quot;permissions&quot;</span><span class="hl-0">: [</span><br/><span class="hl-0">        </span><span class="hl-1">&quot;permission1&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        {</span><span class="hl-2">&quot;key&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;permission2&quot;</span><span class="hl-0">, </span><span class="hl-2">&quot;value&quot;</span><span class="hl-0">: []},</span><br/><span class="hl-0">        {</span><span class="hl-2">&quot;key&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;permission3&quot;</span><span class="hl-0">, </span><span class="hl-2">&quot;value&quot;</span><span class="hl-0">: [</span><span class="hl-1">&quot;value1&quot;</span><span class="hl-0">]},</span><br/><span class="hl-0">        {</span><span class="hl-2">&quot;key&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;permission3&quot;</span><span class="hl-0">, </span><span class="hl-2">&quot;value&quot;</span><span class="hl-0">: [</span><span class="hl-1">&quot;value1&quot;</span><span class="hl-0">, </span><span class="hl-1">&quot;value2&quot;</span><span class="hl-0">]},</span><br/><span class="hl-0">    ]</span><br/><span class="hl-0">}</span>
+</code></pre>
 </li>
 <li><p><code>metadata</code>: an object of arbitrary key &amp; value pairs, where values are strings. Denotes specific information a particular package manager may want to know about package. Works similar to http headers.</p>
-<p>  <strong>Examples</strong>: </p>
-<p>  <code>{&quot;author-bio&quot;: &quot;https://medium.com/cool-author&quot;}</code> </p>
-<p>  <code>{&quot;is-extension&quot;: &quot;true&quot;}</code></p>
-<p>  <code>{&quot;created&quot;: &quot;100003231414&quot;, &quot;updated&quot;: &quot;100003231414&quot;}</code></p>
+<p>  <strong>Example:</strong> </p>
+<pre><code class="language-json"><span class="hl-0">{</span><br/><span class="hl-0">    </span><span class="hl-2">&quot;metadata&quot;</span><span class="hl-0">: {</span><br/><span class="hl-0">        </span><span class="hl-2">&quot;is-extension&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;true&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-2">&quot;pkg-manager-x-key&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;key-exists&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-2">&quot;created&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;100003231414&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-2">&quot;updated&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;100003431414&quot;</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">}</span>
+</code></pre>
+</li>
+</ul>
+
+<a href="#invalidations" id="invalidations" style="color: inherit; text-decoration: none;">
+  <h2>Invalidations</h2>
+</a>
+<p>If a new version of a package is released, package managers will need to update the cached files of said package. Providing an invalidation strategy for a file(s) hints to package managers how to cache files.</p>
+<p>Here are a list of strategies that may be provided:</p>
+<ul>
+<li><p><code>url-diff</code>: file should only be cached if file with same url does not exist in package manager cache. Otherwise, file should not be cached.</p>
+</li>
+<li><p><code>purge</code>: file should be recached on every new package version, regardless if a file with same url exists in package manager cache. By default the <code>entry</code> file of a huzma manifest uses this strategy if it is found in <code>files</code>.</p>
+</li>
+<li><p><code>default</code>: let package manager decide.</p>
 </li>
 </ul>
 
 <a href="#command-line-tools" id="command-line-tools" style="color: inherit; text-decoration: none;">
   <h2>Command Line Tools</h2>
 </a>
-<p>This package comes bundle with some cli commands to help create huzem (plural for huzma). All commands can also be programmatically invoked from as well. Package must be <a href="#installation">installed</a> to invoke commands.</p>
+<p>This package comes bundled with cli commands to help create huzem (plural for huzma). All commands can be programmatically invoked from as well. Package must be <a href="#installation">installed</a> to invoke commands.</p>
+<p><code>npx huzma-init</code>: initialize a huzma config file - a <a href="https://moomoolive.github.io/huzma/types/cli.HuzmaCliConfig.html">configuration file</a> which is used by other commands in this package.</p>
+<p>Options:</p>
 <ul>
-<li><p><code>npx huzma-init</code>: initialize a huzma config file. A configuration file which can be used by other commands to generate a huzma.</p>
-<p>  Options:</p>
-<ul>
-<li><p><code>path</code>: soon... Defaults to <code>huzma.config.mjs</code>.</p>
-</li>
-<li><p><code>template</code>: soon...</p>
-</li>
-</ul>
-</li>
-</ul>
-<pre><code class="language-js"><span class="hl-2">import</span><span class="hl-0"> {</span><span class="hl-3">initHuzma</span><span class="hl-0">} </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma/dist/cli.js&quot;</span><br/><br/><span class="hl-0">(</span><span class="hl-4">async</span><span class="hl-0"> () </span><span class="hl-4">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-2">await</span><span class="hl-0"> </span><span class="hl-5">initHuzma</span><span class="hl-0">({</span><span class="hl-6">/* insert your config */</span><span class="hl-0">})</span><br/><span class="hl-0">})()</span>
+<li><p><code>path</code>: a path where huzma config file should be created, must end with <code>js</code> or <code>mjs</code> extension. Defaults to <code>huzma.config.mjs</code>.</p>
+<p>  CLI:</p>
+<pre><code class="language-bash"><span class="hl-0">npx </span><span class="hl-1">huzma-init</span><span class="hl-0"> </span><span class="hl-1">--path</span><span class="hl-0"> </span><span class="hl-1">huzma.config.mjs</span>
 </code></pre>
-<ul>
-<li><p><code>npx huzma-create</code>: create a huzma manifest from config.</p>
-<p>  Options:</p>
-<ul>
-<li><p><code>configFileName</code>: soon... Defaults to <code>huzma.config.mjs</code></p>
-</li>
-<li><p><code>packageJsonPath</code>: soon... Defaults to <code>packageJson</code></p>
-</li>
-<li><p><code>outFile</code>: soon...</p>
-</li>
-<li><p><code>huzmaName</code>: soon... Defaults to <code>default</code></p>
-</li>
-<li><p><code>buildDir</code>: soon...</p>
-</li>
-<li><p><code>disablePackageJsonFill</code>: soon... Defaults to false.</p>
-</li>
-</ul>
-</li>
-</ul>
-<pre><code class="language-js"><span class="hl-2">import</span><span class="hl-0"> {</span><span class="hl-3">createHuzma</span><span class="hl-0">} </span><span class="hl-2">from</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma/dist/cli.js&quot;</span><br/><br/><span class="hl-0">(</span><span class="hl-4">async</span><span class="hl-0"> () </span><span class="hl-4">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-5">createHuzma</span><span class="hl-0">({</span><span class="hl-6">/* insert your config */</span><span class="hl-0">})</span><br/><span class="hl-0">})()</span>
+<p>  JS:</p>
+<pre><code class="language-js"><span class="hl-4">import</span><span class="hl-0"> {</span><span class="hl-5">initHuzma</span><span class="hl-0">} </span><span class="hl-4">from</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma/dist/cli.js&quot;</span><br/><br/><span class="hl-4">await</span><span class="hl-0"> </span><span class="hl-6">initHuzma</span><span class="hl-0">({</span><span class="hl-5">path:</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma.config.mjs&quot;</span><span class="hl-0">})</span>
 </code></pre>
+</li>
+<li><p><code>template</code>: available templates include <code>zakhaarif</code>. Defaults to empty string.</p>
+<p>  CLI:</p>
+<pre><code class="language-bash"><span class="hl-0">npx </span><span class="hl-1">huzma-init</span><span class="hl-0"> </span><span class="hl-1">--template</span><span class="hl-0"> </span><span class="hl-1">zakhaarif</span>
+</code></pre>
+<p>  JS:</p>
+<pre><code class="language-js"><span class="hl-4">import</span><span class="hl-0"> {</span><span class="hl-5">initHuzma</span><span class="hl-0">} </span><span class="hl-4">from</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma/dist/cli.js&quot;</span><br/><br/><span class="hl-4">await</span><span class="hl-0"> </span><span class="hl-6">initHuzma</span><span class="hl-0">({</span><span class="hl-5">template:</span><span class="hl-0"> </span><span class="hl-1">&quot;zakhaarif&quot;</span><span class="hl-0">})</span>
+</code></pre>
+</li>
+</ul>
+<p><code>npx huzma-create</code>: create a huzma manifest.</p>
+<p>Options:</p>
+<ul>
+<li><p><code>buildDir</code>: ⚠️ required, directory that includes all package files.</p>
+<p>  CLI:</p>
+<pre><code class="language-bash"><span class="hl-0">npx </span><span class="hl-1">huzma-create</span><span class="hl-0"> </span><span class="hl-1">--buildDir</span><span class="hl-0"> </span><span class="hl-1">dist</span>
+</code></pre>
+<p>  JS:</p>
+<pre><code class="language-js"><span class="hl-4">import</span><span class="hl-0"> {</span><span class="hl-5">createHuzma</span><span class="hl-0">} </span><span class="hl-4">from</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma/dist/cli.js&quot;</span><br/><br/><span class="hl-4">await</span><span class="hl-0"> </span><span class="hl-6">createHuzma</span><span class="hl-0">({</span><span class="hl-5">buildDir:</span><span class="hl-0"> </span><span class="hl-1">&quot;dist&quot;</span><span class="hl-0">})</span>
+</code></pre>
+</li>
+<li><p><code>outFile</code>: the full path with the generated huzma manifest should be written to. Path must end with <code>.huzma.json</code>. Defaults to <code>buildDir</code> + <code>default.huzma.json</code>.</p>
+<p>  CLI:</p>
+<pre><code class="language-bash"><span class="hl-0">npx </span><span class="hl-1">huzma-create</span><span class="hl-0"> </span><span class="hl-1">--outFile</span><span class="hl-0"> </span><span class="hl-1">dist/default.huzma.json</span>
+</code></pre>
+<p>  js:</p>
+<pre><code class="language-JS"><span class="hl-4">import</span><span class="hl-0"> {</span><span class="hl-5">createHuzma</span><span class="hl-0">} </span><span class="hl-4">from</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma/dist/cli.js&quot;</span><br/><br/><span class="hl-4">await</span><span class="hl-0"> </span><span class="hl-6">createHuzma</span><span class="hl-0">({</span><span class="hl-5">outFile:</span><span class="hl-0"> </span><span class="hl-1">&quot;dist/default.huzma.json&quot;</span><span class="hl-0">})</span>
+</code></pre>
+</li>
+<li><p><code>configFileName</code>: path to <a href="https://moomoolive.github.io/huzma/types/cli.HuzmaCliConfig.html">huzma config file</a>, path must end with <code>js</code> or <code>mjs</code>. Can be generated via <code>npx huzma-init</code> command. Defaults to <code>huzma.config.mjs</code></p>
+<p>  CLI:</p>
+<pre><code class="language-bash"><span class="hl-0">npx </span><span class="hl-1">huzma-create</span><span class="hl-0"> </span><span class="hl-1">--configFileName</span><span class="hl-0"> </span><span class="hl-1">huzma.config.mjs</span>
+</code></pre>
+<p>  JS:</p>
+<pre><code class="language-js"><span class="hl-4">import</span><span class="hl-0"> {</span><span class="hl-5">createHuzma</span><span class="hl-0">} </span><span class="hl-4">from</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma/dist/cli.js&quot;</span><br/><br/><span class="hl-4">await</span><span class="hl-0"> </span><span class="hl-6">createHuzma</span><span class="hl-0">({</span><span class="hl-5">configFileName:</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma.config.mjs&quot;</span><span class="hl-0">})</span>
+</code></pre>
+</li>
+<li><p><code>packageJsonPath</code>: Path to package json from which to auto-fill missing values from. See <code>disablePackageJsonFill</code> for more details. Defaults to <code>package.json</code></p>
+<p>  CLI:</p>
+<pre><code class="language-bash"><span class="hl-0">npx </span><span class="hl-1">huzma-create</span><span class="hl-0"> </span><span class="hl-1">--packageJsonPath</span><span class="hl-0"> </span><span class="hl-1">package.json</span>
+</code></pre>
+<p>  JS:</p>
+<pre><code class="language-js"><span class="hl-4">import</span><span class="hl-0"> {</span><span class="hl-5">createHuzma</span><span class="hl-0">} </span><span class="hl-4">from</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma/dist/cli.js&quot;</span><br/><br/><span class="hl-4">await</span><span class="hl-0"> </span><span class="hl-6">createHuzma</span><span class="hl-0">({</span><span class="hl-5">packageJsonPath:</span><span class="hl-0"> </span><span class="hl-1">&quot;package.json&quot;</span><span class="hl-0">})</span>
+</code></pre>
+</li>
+<li><p><code>disablePackageJsonFill</code>: Whether missing values not found in config file &amp; inline config should be autofilled from package json. Values in package json are given a lower precedent than values found in config file or inline config. Setting flag disables auto-fill. To set path of package json set the <code>packageJsonPath</code> argument. Values that can be auto-filled from <code>package.json</code> include: </p>
+<ul>
+<li><code>name</code></li>
+<li><code>version</code> </li>
+<li><code>description</code></li>
+<li><code>keywords</code></li>
+<li><code>license</code></li>
+<li><code>repository</code>: maps to huzma&#39;s <code>repo</code> field.</li>
+<li><code>contributors</code>: maps to huzma&#39;s <code>authors</code> field.</li>
+<li><code>homepage</code>: maps to huzma&#39;s <code>homepageUrl</code> field.</li>
+</ul>
+<p>  CLI:</p>
+<pre><code class="language-bash"><span class="hl-0">npx </span><span class="hl-1">huzma-create</span><span class="hl-0"> </span><span class="hl-1">--disablePackageJsonFill</span>
+</code></pre>
+<p>  JS:</p>
+<pre><code class="language-js"><span class="hl-4">import</span><span class="hl-0"> {</span><span class="hl-5">createHuzma</span><span class="hl-0">} </span><span class="hl-4">from</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma/dist/cli.js&quot;</span><br/><br/><span class="hl-4">await</span><span class="hl-0"> </span><span class="hl-6">createHuzma</span><span class="hl-0">({</span><span class="hl-5">disablePackageJsonFill:</span><span class="hl-0"> </span><span class="hl-7">true</span><span class="hl-0">})</span>
+</code></pre>
+</li>
+<li><p><code>inlineConfigFile</code>: provide an inline config, which takes precedent over config file. Defaults to null. Cannot be used from cli.</p>
+<p>  JS:</p>
+<pre><code class="language-js"><span class="hl-4">import</span><span class="hl-0"> {</span><span class="hl-5">createHuzma</span><span class="hl-0">} </span><span class="hl-4">from</span><span class="hl-0"> </span><span class="hl-1">&quot;huzma/dist/cli.js&quot;</span><br/><br/><span class="hl-4">await</span><span class="hl-0"> </span><span class="hl-6">createHuzma</span><span class="hl-0">({</span><br/><span class="hl-0">    </span><span class="hl-5">inlineConfigFile:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-5">name:</span><span class="hl-0"> </span><span class="hl-1">&quot;my-huzma&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-5">version:</span><span class="hl-0"> </span><span class="hl-1">&quot;0.1.0&quot;</span><br/><span class="hl-0">        </span><span class="hl-8">// ...rest of config</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">})</span>
+</code></pre>
+</li>
+</ul>
 </div></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">

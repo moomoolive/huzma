@@ -6,11 +6,10 @@ console.info("running create command...")
 
 /** @type {{}} */
 const options = commandLineArgs([
-    {name: "configFileName", alias: "c", type: String},
-    {name: "packageJsonPath", alias: "p", type: String},
-    {name: "outFile", alias: "o", type: String},
-    {name: "huzmaName", alias: "n",  type: String},
-    {name: "buildDir", alias: "d", type: String},
+    {name: "configFileName", type: String},
+    {name: "packageJsonPath", type: String},
+    {name: "outFile", type: String},
+    {name: "buildDir", type: String},
     {name: "disablePackageJsonFill", type: Boolean}
 ])
 

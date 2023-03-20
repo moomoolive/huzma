@@ -6,8 +6,8 @@ console.info("running init command...")
 
 /** @type {{}} */
 const options = commandLineArgs([
-    {name: "path", alias: "p", type: String},
-    {name: "template", alias: "t", type: String},
+    {name: "path", type: String},
+    {name: "template", type: String},
 ])
 
 initHuzma(options)

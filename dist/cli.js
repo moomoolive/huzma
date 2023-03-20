@@ -23,7 +23,6 @@ async function createHuzma({
   configFileName = `${process.cwd()}/${DEAULT_CONFIG_FILE}`,
   packageJsonPath = `${process.cwd()}/package.json`,
   outFile = "",
-  huzmaName = "",
   buildDir = "",
   inlineConfigFile = null,
   disablePackageJsonFill = false
@@ -33,13 +32,19 @@ async function createHuzma({
     return;
   }
   const configFile = await (async () => {
-    if (inlineConfigFile) {
-      return { default: inlineConfigFile };
-    }
     if (!fsSync.existsSync(configFileName)) {
       throw new Error(`input config file "${configFileName.split("/").at(-1) || "unknown"}" does not exist (${configFileName})`);
     }
-    return await import(configFileName);
+    const importedConfig = await import(configFileName);
+    if ("default" in importedConfig && typeof importedConfig.default === "object" && importedConfig.default !== null && !Array.isArray(importedConfig.default)) {
+      return {
+        default: {
+          ...inlineConfigFile || {},
+          ...importedConfig.default
+        }
+      };
+    }
+    return importedConfig;
   })();
   if (!("default" in configFile)) {
     console.error(`no default export found in huzma config file.`);
@@ -52,6 +57,7 @@ async function createHuzma({
       ignore: z.array(z.string()).default([]),
       outFile: z.string().optional(),
       packageJsonPath: z.string().optional(),
+      disablePackageJsonFill: z.boolean().optional(),
       version: z.string().default(""),
       name: z.string().default(""),
       files: z.array(z.string()).default([]),
@@ -85,7 +91,7 @@ async function createHuzma({
     return;
   }
   const parsedPackageJson = await (async () => {
-    if (disablePackageJsonFill) {
+    if (disablePackageJsonFill || configFile.default.disablePackageJsonFill) {
       return null;
     }
     try {
@@ -163,8 +169,7 @@ async function createHuzma({
   }
   const globs = ignore.filter((pattern) => pattern.includes("*"));
   const otherPatterns = ignore.filter((pattern) => !pattern.includes("*"));
-  const huzmaFilename = huzmaName || parsedConfig.data.huzmaName || DEFAULT_HUZMA_NAME;
-  const filename = outFile || parsedConfig.data.outFile || dirName(finalBuildDir) + huzmaFilename;
+  const filename = outFile || parsedConfig.data.outFile || dirName(finalBuildDir) + DEFAULT_HUZMA_NAME;
   if (!filename.endsWith(MANIFEST_FILE_SUFFIX)) {
     console.error(`Huzma name must end with suffix "${MANIFEST_FILE_SUFFIX}". Got "${filename}"`);
     return;
@@ -208,15 +213,13 @@ async function initHuzma({
     }
   })();
   const defaultConfig = {
-    buildDir: "dist",
-    huzmaName: "default.huzma.json"
+    buildDir: "dist"
   };
   const file = `
 // docs: ${HUZMA_CLI_DOCS_LINK}
 ${typeDeclaration}
 export default {
     buildDir: "${defaultConfig.buildDir}",
-    huzmaName: "${defaultConfig.huzmaName}"
 }
     `.trim();
   await fs.writeFile(path, file, { encoding: "utf-8" });

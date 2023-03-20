@@ -1,10 +1,27 @@
 import { PermissionsListOptions, InvalidationStrategy, PermissionsListRaw } from "./index";
+/**
+ * A configuration file for Huzma cli commands
+ */
 export type HuzmaCliConfig<Permissions extends PermissionsListRaw = PermissionsListRaw> = {
+    /**
+     * Path to package files.
+     */
     buildDir?: string;
-    huzmaName?: string;
+    /**
+     * An array of files, directories, globs, or regexes to
+     * not include in the generated Huzma manifest's "files"
+     * key.
+     */
     ignore?: string[];
+    /**
+     * Path where generated Huzma Manifest shoul be written
+     */
     outFile?: string;
+    /**
+     * Path of package.json to fill values from
+     */
     packageJsonPath?: string;
+    disablePackageJsonFill?: boolean;
     name?: string;
     version?: string;
     files?: string[];
@@ -27,16 +44,21 @@ export type HuzmaCliConfig<Permissions extends PermissionsListRaw = PermissionsL
     permissions?: PermissionsListOptions<Permissions>;
     metadata?: Record<string, string>;
 };
-export declare function createHuzma({ configFileName, packageJsonPath, outFile, huzmaName, buildDir, inlineConfigFile, disablePackageJsonFill }?: {
+/**
+ * Create a huzma manifest file.
+ */
+export declare function createHuzma({ configFileName, packageJsonPath, outFile, buildDir, inlineConfigFile, disablePackageJsonFill }?: {
     configFileName?: string | undefined;
     packageJsonPath?: string | undefined;
     outFile?: string | undefined;
-    huzmaName?: string | undefined;
     buildDir?: string | undefined;
     inlineConfigFile?: HuzmaCliConfig<PermissionsListRaw> | null | undefined;
     disablePackageJsonFill?: boolean | undefined;
 }): Promise<void>;
 export type TemplateOptions = "" | "zakhaarif";
+/**
+ * Initialize a humza config file.
+ */
 export declare function initHuzma({ path, template }?: {
     path?: string | undefined;
     template?: TemplateOptions | undefined;
