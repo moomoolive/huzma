@@ -1,0 +1,10 @@
+{
+    "schema": 2,
+    "name": "metadata",
+    "version": "2.5.8",
+    "license": "MIT",
+    "metadata": {
+        "key1": "asfljsalfkadsf",
+        "key2": "another-random-value"
+    }
+}

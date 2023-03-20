@@ -1,0 +1,17 @@
+{
+    "schema": 2,
+    "name": "invalidations",
+    "version": "0.17.3",
+    "enty": "assets/main.js",
+    "invalidation": "url-diff",
+    "description": "different invalidations",
+    "files": [
+        "assets/main.js",
+        "assets/style.css",
+        {
+            "name": "assets/anotherScript.js", 
+            "invalidation": "purge"
+        },
+        {"name": "assets/cute-cat.jpg", "bytes": 85337}
+    ]
+}

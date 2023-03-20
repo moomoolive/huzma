@@ -1,0 +1,1 @@
+`assets/cute-cat.jpg`: was taken by [Nadi Whatisdelirium](https://unsplash.com/@whatisdelirium)

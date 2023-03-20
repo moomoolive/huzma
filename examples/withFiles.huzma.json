@@ -1,0 +1,11 @@
+{
+    "schema": 2,
+    "name": "with-files",
+    "version": "0.5.3",
+    "enty": "assets/main.js",
+    "description": "A TREMENDOUS AMOUNT OF FILES",
+    "files": [
+        "assets/main.js",
+        "assets/style.css"
+    ]
+}

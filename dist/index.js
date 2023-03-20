@@ -160,7 +160,7 @@ function isUrl(url) {
     return false;
   }
 }
-function validateManifest(cargo) {
+function validateManifest(manifest) {
   var _a, _b;
   const out = {
     pkg: new HuzmaManifest(),
@@ -168,7 +168,7 @@ function validateManifest(cargo) {
     semanticVersion: SemVer.null()
   };
   const { pkg, errors } = out;
-  const c = cargo;
+  const c = manifest;
   const baseType = betterTypeof(c);
   if (baseType !== "object") {
     errors.push(`expected cargo to be type "object" got "${baseType}"`);
@@ -345,36 +345,42 @@ function manifestIsUpdatable(newManifest, oldManifest) {
 }
 class HuzmaUpdateDetails {
   constructor(addFiles, deleteFiles) {
+    /**
+     * A list of files that are requested to be cached
+     */
     __publicField(this, "add");
+    /**
+     * A list of files that should be removed for cache
+     */
     __publicField(this, "delete");
     this.add = addFiles;
     this.delete = deleteFiles;
   }
 }
-function diffManifestFiles(newCargo, oldCargo, defaultInvalidation) {
+function diffManifestFiles(newManifest, oldManifest, defaultInvalidation) {
   const updates = new HuzmaUpdateDetails([], []);
   const newFiles = {};
-  for (let i = 0; i < newCargo.files.length; i++) {
-    const { name, invalidation } = newCargo.files[i];
-    if (newCargo.entry !== NULL_FIELD && name === newCargo.entry && invalidation === "default") {
+  for (let i = 0; i < newManifest.files.length; i++) {
+    const { name, invalidation } = newManifest.files[i];
+    if (newManifest.entry !== NULL_FIELD && name === newManifest.entry && invalidation === "default") {
       newFiles[name] = "purge";
       continue;
     }
     newFiles[name] = invalidation === "default" ? defaultInvalidation : invalidation;
   }
   const oldFiles = {};
-  for (let i = 0; i < oldCargo.files.length; i++) {
-    const { name } = oldCargo.files[i];
+  for (let i = 0; i < oldManifest.files.length; i++) {
+    const { name } = oldManifest.files[i];
     oldFiles[name] = true;
   }
-  for (let i = 0; i < newCargo.files.length; i++) {
-    const { name, bytes } = newCargo.files[i];
+  for (let i = 0; i < newManifest.files.length; i++) {
+    const { name, bytes } = newManifest.files[i];
     if (!oldFiles[name] || newFiles[name] === "purge") {
       updates.add.push({ name, bytes });
     }
   }
-  for (let i = 0; i < oldCargo.files.length; i++) {
-    const { name, bytes } = oldCargo.files[i];
+  for (let i = 0; i < oldManifest.files.length; i++) {
+    const { name, bytes } = oldManifest.files[i];
     const invalidation = newFiles[name];
     if (!invalidation || invalidation === "purge") {
       updates.delete.push({ name, bytes });

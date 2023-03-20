@@ -1,9 +1,16 @@
 import {SemVer} from "small-semver"
 
+/**
+ * File extension for the huzma format
+ */
 export const MANIFEST_FILE_SUFFIX = ".huzma.json"
 export const NULL_FIELD = ""
 export const FIRST_SCHEMA_VERSION = 1
 export const LATEST_SCHEMA_VERSION = 2
+/**
+ * Returned for files that do not provide "bytes"
+ * field
+ */
 export const BYTES_NOT_INCLUDED = -1
 
 export type {HuzmaCliConfig} from "./cli"
@@ -73,7 +80,7 @@ export type PermissionsListRaw = ReadonlyArray<
     string | {key: string, value: Array<string> | ReadonlyArray<string>}
 >
 
-type FillEmptyPermissions<
+export type FillEmptyPermissions<
     P extends PermissionsListRaw
 > = {
     [index in keyof P]: P[index] extends string
@@ -86,7 +93,7 @@ type FillEmptyPermissions<
             : never
 }
 
-type FillEmptyPermissionsOptional<P extends PermissionsListRaw> = {
+export type FillEmptyPermissionsOptional<P extends PermissionsListRaw> = {
     [index in keyof P]: P[index] extends string
         ?  P[index] | {key: P[index], value: string[]}
         :  P[index] extends {
@@ -129,6 +136,9 @@ export type ManifestOptions<
     }>
 )
 
+/**
+ * Repersents an invalid huzma semver
+ */
 export const NULL_MANIFEST_VERSION = "0.0.0"
 
 export class HuzmaManifest<
@@ -245,8 +255,21 @@ const typevalid = <T extends Record<string, unknown>>(
     return false
 }
 
+/**
+ * Response to attempting to parse a huzma
+ * manifest from a value. If errors array are
+ * contains 1 or more strings, this signifies 
+ * that input value is not a valid huzma.
+ */
 export type ValidatedCodeManfiest = {
+    /**
+     * Parsed manifest
+     */
     pkg: HuzmaManifest,
+    /**
+     * Errors encountered when parsing source
+     * value.
+     */
     errors: string [],
     semanticVersion: SemVer
 }
@@ -275,7 +298,18 @@ function isUrl(url: string): boolean {
     }
 }
 
-export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
+/**
+ * Check if inputted value is a valid huzma
+ * manifest. Notes: 
+ * - Any members of "file" key do not
+ * include a "bytes" key, "bytes" will be set
+ * to BYTES_NOT_INCLUDED constant. 
+ * - Any string members not present in 
+ * parsed manifest will be set NULL_FIELD constant.
+ * 
+ * @param manifest candidate huzma manifest
+ */
+export function validateManifest<T>(manifest: T): ValidatedCodeManfiest {
     
     const out: ValidatedCodeManfiest = {
         pkg: new HuzmaManifest(),
@@ -283,7 +317,7 @@ export function validateManifest<T>(cargo: T): ValidatedCodeManfiest {
         semanticVersion: SemVer.null()
     }
     const {pkg, errors} = out
-    const c = cargo as ManifestOptions
+    const c = manifest as ManifestOptions
     const baseType = betterTypeof(c)
     if (baseType !== "object") {
         errors.push(`expected cargo to be type "object" got "${baseType}"`)
@@ -458,6 +492,13 @@ export type ManifestUpdateResponse = {
     updateAvailable: boolean
 }
 
+/**
+ * Check if new manifest version is a greater version
+ * than currently cached version.
+ * 
+ * @param newManifest newest manifest
+ * @param oldManifest cached manifest
+ */
 export function manifestIsUpdatable(
     newManifest: unknown, 
     oldManifest: unknown
@@ -496,7 +537,13 @@ export type FileRef = {
 }
 
 export class HuzmaUpdateDetails {
+    /**
+     * A list of files that are requested to be cached
+     */
     add: FileRef[]
+    /**
+     * A list of files that should be removed for cache
+     */
     delete: FileRef[]
 
     constructor(addFiles: FileRef[], deleteFiles: FileRef[]) {
@@ -504,19 +551,27 @@ export class HuzmaUpdateDetails {
         this.delete = deleteFiles
     }
 }
-
+/**
+ * Diff new manifest and analyze which files should
+ * be added and removed from cache.
+ * 
+ * @param newManifest updated manifest
+ * @param oldManifest previously cached manifest
+ * @param defaultInvalidation if file invalidation is not mentioned
+ * which invalidation strategy should be used
+ */
 export function diffManifestFiles(
-    newCargo: HuzmaManifest, 
-    oldCargo: HuzmaManifest,
+    newManifest: HuzmaManifest, 
+    oldManifest: HuzmaManifest,
     defaultInvalidation: ValidDefaultStrategies
 ): HuzmaUpdateDetails {
     const updates = new HuzmaUpdateDetails([], [])
     const newFiles: Record<string, ValidDefaultStrategies> = {}
-    for (let i = 0; i < newCargo.files.length; i++) {
-        const {name, invalidation} = newCargo.files[i]
+    for (let i = 0; i < newManifest.files.length; i++) {
+        const {name, invalidation} = newManifest.files[i]
         if (
-            newCargo.entry !== NULL_FIELD 
-            && name === newCargo.entry
+            newManifest.entry !== NULL_FIELD 
+            && name === newManifest.entry
             && invalidation === "default"
         ) {
             newFiles[name] = "purge"
@@ -528,20 +583,20 @@ export function diffManifestFiles(
     }
 
     const oldFiles: Record<string, boolean> = {}
-    for (let i = 0; i < oldCargo.files.length; i++) {
-        const {name} = oldCargo.files[i]
+    for (let i = 0; i < oldManifest.files.length; i++) {
+        const {name} = oldManifest.files[i]
         oldFiles[name] = true
     }
 
-    for (let i = 0; i < newCargo.files.length; i++) {
-        const {name, bytes} = newCargo.files[i]
+    for (let i = 0; i < newManifest.files.length; i++) {
+        const {name, bytes} = newManifest.files[i]
         if (!oldFiles[name] || newFiles[name] === "purge") {
             updates.add.push({name, bytes})
         }
     }
 
-    for (let i = 0; i < oldCargo.files.length; i++) {
-        const {name, bytes} = oldCargo.files[i]
+    for (let i = 0; i < oldManifest.files.length; i++) {
+        const {name, bytes} = oldManifest.files[i]
         const invalidation = newFiles[name]
         if (!invalidation || invalidation === "purge") {
             updates.delete.push({name, bytes})

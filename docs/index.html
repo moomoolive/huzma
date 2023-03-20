@@ -29,6 +29,7 @@
 <li><a href="#invalidations">Invalidations</a></li>
 <li><a href="#command-line-tools">Command Line</a></li>
 <li><a href="https://moomoolive.github.io/huzma/">API Reference</a></li>
+<li><a href="https://github.com/moomoolive/huzma/tree/master/examples">Examples</a></li>
 </ul>
 <p>Huzma (the Arabic word for package, <a href="https://www.howtopronounce.com/arabic/%D8%AD%D8%B2%D9%85%D8%A9">pronounced like this</a>, spelt in Arabic حزمة) is a manifest format for browser-based package managers. This library is a Javascript implementation of the Huzma manifest format which includes:</p>
 <ul>
@@ -37,7 +38,7 @@
 <li><p>A <a href="#command-line-tools">command line interface</a> to ease automation.</p>
 </li>
 </ul>
-<p>Originally made to import game mods into the <a href="https://github.com/moomoolive/zakhaarif-launcher">Zakhaarif Launcher</a>, this format takes inspiration from Node&#39;s <a href="https://docs.npmjs.com/cli/v9/configuring-npm/package-json">package.json</a> and Rust&#39;s <a href="https://doc.rust-lang.org/cargo/reference/manifest.html">cargo.toml</a> manifest formats.</p>
+<p>Originally made to import game mods into the <a href="https://github.com/moomoolive/zakhaarif-launcher">Zakhaarif Launcher</a>, this format takes inspiration from Node&#39;s <a href="https://docs.npmjs.com/cli/v9/configuring-npm/package-json">package.json</a> and Rust&#39;s <a href="https://doc.rust-lang.org/cargo/reference/manifest.html">cargo.toml</a>.</p>
 
 <a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
   <h2>Installation</h2>
@@ -123,7 +124,11 @@
   <h2>Command Line Tools</h2>
 </a>
 <p>This package comes bundled with cli commands to help create huzem (plural for huzma). All commands can be programmatically invoked from as well. Package must be <a href="#installation">installed</a> to invoke commands.</p>
-<p><code>npx huzma-init</code>: initialize a huzma config file - a <a href="https://moomoolive.github.io/huzma/types/cli.HuzmaCliConfig.html">configuration file</a> which is used by other commands in this package.</p>
+
+<a href="#npx-huzma-init" id="npx-huzma-init" style="color: inherit; text-decoration: none;">
+  <h3>npx huzma-init</h3>
+</a>
+<p>Initialize a huzma config file - a <a href="https://moomoolive.github.io/huzma/types/cli.HuzmaCliConfig.html">configuration file</a> which is used by other commands in this package.</p>
 <p>Options:</p>
 <ul>
 <li><p><code>path</code>: a path where huzma config file should be created, must end with <code>js</code> or <code>mjs</code> extension. Defaults to <code>huzma.config.mjs</code>.</p>
@@ -143,7 +148,11 @@
 </code></pre>
 </li>
 </ul>
-<p><code>npx huzma-create</code>: create a huzma manifest.</p>
+
+<a href="#npx-huzma-create" id="npx-huzma-create" style="color: inherit; text-decoration: none;">
+  <h3>npx huzma-create</h3>
+</a>
+<p>Create a huzma manifest.</p>
 <p>Options:</p>
 <ul>
 <li><p><code>buildDir</code>: ⚠️ required, directory that includes all package files.</p>

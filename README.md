@@ -9,6 +9,7 @@
 * [Invalidations](#invalidations)
 * [Command Line](#command-line-tools)
 * [API Reference](https://moomoolive.github.io/huzma/)
+* [Examples](https://github.com/moomoolive/huzma/tree/master/examples)
 
 Huzma (the Arabic word for package, [pronounced like this](https://www.howtopronounce.com/arabic/%D8%AD%D8%B2%D9%85%D8%A9), spelt in Arabic حزمة) is a manifest format for browser-based package managers. This library is a Javascript implementation of the Huzma manifest format which includes:
 
@@ -16,7 +17,7 @@ Huzma (the Arabic word for package, [pronounced like this](https://www.howtopron
 
 * A [command line interface](#command-line-tools) to ease automation.
 
-Originally made to import game mods into the [Zakhaarif Launcher](https://github.com/moomoolive/zakhaarif-launcher), this format takes inspiration from Node's [package.json](https://docs.npmjs.com/cli/v9/configuring-npm/package-json) and Rust's [cargo.toml](https://doc.rust-lang.org/cargo/reference/manifest.html) manifest formats.
+Originally made to import game mods into the [Zakhaarif Launcher](https://github.com/moomoolive/zakhaarif-launcher), this format takes inspiration from Node's [package.json](https://docs.npmjs.com/cli/v9/configuring-npm/package-json) and Rust's [cargo.toml](https://doc.rust-lang.org/cargo/reference/manifest.html).
 
 ## Installation
 
@@ -162,7 +163,9 @@ Here are a list of strategies that may be provided:
 
 This package comes bundled with cli commands to help create huzem (plural for huzma). All commands can be programmatically invoked from as well. Package must be [installed](#installation) to invoke commands.
 
-`npx huzma-init`: initialize a huzma config file - a [configuration file](https://moomoolive.github.io/huzma/types/cli.HuzmaCliConfig.html) which is used by other commands in this package.
+### npx huzma-init
+
+Initialize a huzma config file - a [configuration file](https://moomoolive.github.io/huzma/types/cli.HuzmaCliConfig.html) which is used by other commands in this package.
 
 Options:
 
@@ -198,7 +201,9 @@ Options:
     await initHuzma({template: "zakhaarif"})
     ```
 
-`npx huzma-create`: create a huzma manifest.
+### npx huzma-create
+
+Create a huzma manifest.
 
 Options:
 
